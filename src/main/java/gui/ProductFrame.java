@@ -1,9 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package gui;
+
+import java.rmi.Naming;
+import java.util.List;
+
+import javax.swing.table.DefaultTableModel;
+
+import entity.Sanpham;
+import service.SanphamService;
 
 /**
  *
@@ -16,6 +20,7 @@ public class ProductFrame extends javax.swing.JFrame {
      */
     public ProductFrame() {
         initComponents();
+        test();
     }
 
     /**
@@ -422,15 +427,40 @@ public class ProductFrame extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnThemActionPerformed
 
+    private void test() {
+    	SecurityManager securityManager = System.getSecurityManager();
+		if(securityManager == null) {
+			System.setProperty("java.security.policy", "policy/policy.policy");
+			System.setSecurityManager(new SecurityManager());
+		}
+		try {
+			SanphamService sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.4:1099/sanphamService");
+			List<Sanpham> sanphams = sanphamDao.getSanpham();
+			DefaultTableModel model = new DefaultTableModel(new Object[] {"Loại sản phẩm","Mã sản phẩm","Tên sản phẩm" , "Đơn giá", "Số lượng tồn", "Trạng thái",
+					"Mã nhà sản xuất"},0 );
+			for(Sanpham sp :sanphams) {
+				Object[] obj = {sp.getLoaisanpham().getTenloaisp(),sp.getId(),sp.getTenSanpham(),sp.getDongia(),sp.getSoluongton(), sp.getTrangthai(), sp.getNhacungcap().getId()};
+				model.addRow(obj);
+			}
+			tableQuanLySP.setModel(model);
+		} catch (Exception e) {
+			// TODO: handle exception
+			
+			e.printStackTrace();
+		}
+    }
     /**
      * @param args the command line arguments
      */
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+    	
+		
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
