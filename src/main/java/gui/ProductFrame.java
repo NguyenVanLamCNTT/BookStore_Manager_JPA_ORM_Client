@@ -16,10 +16,27 @@ import service.SanphamService;
 public class ProductFrame extends javax.swing.JFrame {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	/**
      * Creates new form ProductFrame
      */
-    public ProductFrame() {
+	private SecurityManager securityManager;
+    private SanphamService sanphamDao;
+	public ProductFrame() {
         initComponents();
+        this.securityManager = System.getSecurityManager();
+		if(this.securityManager == null) {
+			System.setProperty("java.security.policy", "policy/policy.policy");
+			System.setSecurityManager(new SecurityManager());
+		}
+		try {
+			sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.6:1099/sanphamService");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
         test();
     }
 
@@ -428,13 +445,8 @@ public class ProductFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btnThemActionPerformed
 
     private void test() {
-    	SecurityManager securityManager = System.getSecurityManager();
-		if(securityManager == null) {
-			System.setProperty("java.security.policy", "policy/policy.policy");
-			System.setSecurityManager(new SecurityManager());
-		}
 		try {
-			SanphamService sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.4:1099/sanphamService");
+			sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.6:1099/sanphamService");
 			List<Sanpham> sanphams = sanphamDao.getSanpham();
 			DefaultTableModel model = new DefaultTableModel(new Object[] {"Loại sản phẩm","Mã sản phẩm","Tên sản phẩm" , "Đơn giá", "Số lượng tồn", "Trạng thái",
 					"Mã nhà sản xuất"},0 );
