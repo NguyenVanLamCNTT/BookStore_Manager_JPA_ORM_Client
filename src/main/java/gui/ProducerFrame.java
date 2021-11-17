@@ -5,19 +5,179 @@
  */
 package gui;
 
+import java.awt.Color;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+
+import entity.LoaiSanpham;
+import entity.Nhacungcap;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.LoaiSanphamService;
+import service.NhacungcapService;
+
 /**
  *
  * @author Lenovo
  */
 public class ProducerFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/nhacungcapService";
+	DefaultTableModel tableModel;
+	List<Nhacungcap> listNcc;
     /**
      * Creates new form ProducerFrame
      */
     public ProducerFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        tableModel = (DefaultTableModel) tableCNNCC.getModel();
+        showData();
+        reset();
     }
-
+    private void showData(){
+    	try {
+			NhacungcapService dao_nhacc = (NhacungcapService) Naming.lookup(url);
+			listNcc = dao_nhacc.getNhaCungCap();
+	    	tableModel.setRowCount(0);
+	    	for(Nhacungcap ncc: listNcc) {
+	    		tableModel.addRow(new Object[] {ncc.getId(),ncc.getTenNhaCC(),ncc.getDiachi()});
+	    	}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    }
+    private void regex() {
+    	String mancc = txtMaNCC.getText();
+    	String tenncc = txtTenNCC.getText();
+    	String diachi = txtDiaChi.getText();
+    	if(mancc.equals("")) {
+    		JOptionPane.showMessageDialog(this, "Mã nhà cung cấp không hợp lệ","Error!",JOptionPane.ERROR_MESSAGE);
+    		txtMaNCC.setBorder(new LineBorder(Color.red));
+    	}else {
+    		txtMaNCC.setBorder(new LineBorder(Color.green));
+    		
+		}
+    	if(tenncc.equals("")) {
+    		JOptionPane.showMessageDialog(this, "Tên nhà cung cấp không hợp lệ","Error!",JOptionPane.ERROR_MESSAGE);
+    		txtTenNCC.setBorder(new LineBorder(Color.red));
+    		
+    	}else {
+    		txtTenNCC.setBorder(new LineBorder(Color.green));
+    		
+		}
+    	if(diachi.equals("")) {
+    		JOptionPane.showMessageDialog(this, "Địa chỉ nhà cung cấp không hợp lệ","Error!",JOptionPane.ERROR_MESSAGE);
+    		txtMaNCC.setBorder(new LineBorder(Color.red));
+    		
+    	}else {
+    		txtDiaChi.setBorder(new LineBorder(Color.green));
+    		
+		}
+    } private boolean checkInput() {
+    	String mancc = txtMaNCC.getText();
+    	String tenncc = txtTenNCC.getText();
+    	String diachi = txtDiaChi.getText();
+    	
+    	if(mancc.equals("") && tenncc.equals("") && diachi.equals("")) {
+    		return false;
+    	}else {
+			return true;
+			
+		}
+    }
+    private void reset() {
+    	txtDiaChi.setText("");
+    	txtMaNCC.setText("");
+    	txtTenNCC.setText("");
+    	txtDiaChi.setEnabled(false);
+    	txtMaNCC.setEnabled(false);
+    	txtTenNCC.setEnabled(false);
+    	btnLuu.setEnabled(false);
+    	btnSua.setEnabled(false);
+    	btnXoa.setEnabled(false);
+    	btnQuayLai.setEnabled(false);
+    	txtDiaChi.setBorder(new LineBorder(Color.black));
+    	txtMaNCC.setBorder(new LineBorder(Color.black));
+    	txtTenNCC.setBorder(new LineBorder(Color.black));
+    }
+    private void clickBtnThem() {
+    	reset();
+    	txtDiaChi.setEnabled(true);
+    	txtMaNCC.setEnabled(true);
+    	txtTenNCC.setEnabled(true);
+    	btnQuayLai.setEnabled(true);
+    	btnLuu.setEnabled(true);
+    }
+    private boolean checkStatusBtnLuu(String mancc) {
+    	int select = tableCNNCC.getSelectedRow();
+    	if(select == -1) {
+    		return false;
+    	}else {
+			if(mancc.equals(listNcc.get(select).getId())) {
+				return true;
+			}else {
+				return false;
+			}
+		}
+    }
+    private boolean checkMaNCC(String mancc) {
+    	for(Nhacungcap ncc : listNcc) {
+    		if(mancc.equals(ncc.getId())) {
+    			JOptionPane.showMessageDialog(this, "Mã nhà cung cấp tồn tại","Error!",JOptionPane.ERROR_MESSAGE);
+        		txtMaNCC.setBorder(new LineBorder(Color.red));
+    			return true;
+    		}
+    	}
+    	txtMaNCC.setBorder(new LineBorder(Color.green));
+    	return false;
+    }
+    private int notify(String title, String message) {
+    	int n = JOptionPane.showConfirmDialog(this, message,title,JOptionPane.YES_NO_OPTION);
+    	return n;
+    }
+    private void clickBtnLuu() {
+    	try {
+			NhacungcapService dao = (NhacungcapService) Naming.lookup(url);
+			String mancc = txtMaNCC.getText();
+	    	String tenncc = txtTenNCC.getText();
+	    	String diachi = txtDiaChi.getText();
+	    	if(checkStatusBtnLuu(mancc) == true) {
+	    		regex();
+	    		if(checkInput() == true && notify("", "Bạn có chắc muốn lưu thay đổi không?") == 0) {
+	    			dao.updateNhaCungCap(new Nhacungcap(mancc, tenncc, diachi));
+	    			showData();
+	    			reset();
+	    			JOptionPane.showMessageDialog(this,"Bạn đã cập nhật thành công!");
+	    		}
+	    	}else {
+				regex();
+				if(checkInput() == true && checkMaNCC(mancc) == false && notify("", "Bạn có chắc muốn lưu nhà cung cấp này không") == 0) {
+					dao.insertNhaCungCap(new Nhacungcap(mancc, tenncc, diachi));
+					showData();
+					reset();
+					JOptionPane.showMessageDialog(this,"Bạn đã lưu thành công!");
+				}
+			}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -236,29 +396,62 @@ public class ProducerFrame extends javax.swing.JFrame {
 
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThemActionPerformed
         // TODO add your handling code here:
+    	clickBtnThem();
         
     }//GEN-LAST:event_btnThemActionPerformed
 
     private void btnXoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnXoaActionPerformed
-      
+    	try {
+			NhacungcapService dao_nhacc = (NhacungcapService) Naming.lookup(url);
+			String mancc = txtMaNCC.getText();
+	    	if(notify("", "Bạn có chắc muốn xóa nhà cung cấp này không ?") == 0) {
+	    		boolean success =  dao_nhacc.deleteNhaCungCap(mancc);
+	    		if(success == true) {
+	    			JOptionPane.showMessageDialog(this,"Bạn đã xóa thành công!");
+	    			showData();
+	    		}else {
+	    			JOptionPane.showMessageDialog(this,"Lỗi không thể xóa!","", JOptionPane.ERROR_MESSAGE);
+	    			showData();
+				}
+	    	}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	reset();
     }//GEN-LAST:event_btnXoaActionPerformed
 
     private void btnSuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSuaActionPerformed
-      
+    	txtDiaChi.setEnabled(true);
+    	txtTenNCC.setEnabled(true);
+    	btnLuu.setEnabled(true);
     }//GEN-LAST:event_btnSuaActionPerformed
 
     private void btnLuuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLuuActionPerformed
         // TODO add your handling code here:
-       
+       clickBtnLuu();
+       reset();
     }//GEN-LAST:event_btnLuuActionPerformed
 
     private void btnQuayLaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQuayLaiActionPerformed
         // TODO add your handling code here:
+    	reset();
         
     }//GEN-LAST:event_btnQuayLaiActionPerformed
 
     private void tableCNNCCMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableCNNCCMouseClicked
         // TODO add your handling code here:
+    	int index = tableCNNCC.getSelectedRow();
+    	txtMaNCC.setText(listNcc.get(index).getId());
+    	txtTenNCC.setText(listNcc.get(index).getTenNhaCC());
+    	txtDiaChi.setText(listNcc.get(index).getDiachi());
+    	txtDiaChi.setEnabled(false);
+    	txtMaNCC.setEnabled(false);
+    	txtTenNCC.setEnabled(false);
+    	btnSua.setEnabled(true);
+    	btnXoa.setEnabled(true);
+    	btnQuayLai.setEnabled(true);
        
     }//GEN-LAST:event_tableCNNCCMouseClicked
 
