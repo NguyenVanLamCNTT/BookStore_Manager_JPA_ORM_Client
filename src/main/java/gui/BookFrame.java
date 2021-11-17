@@ -435,10 +435,6 @@ public class BookFrame extends javax.swing.JFrame {
 		disabled();
 	}// GEN-LAST:event_btnLuuActionPerformed
 
-	private void btnInActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnInActionPerformed
-
-	}// GEN-LAST:event_btnInActionPerformed
-
 	private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnResetActionPerformed
 		refesh();
 	}// GEN-LAST:event_btnResetActionPerformed
