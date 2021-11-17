@@ -5,19 +5,156 @@
  */
 package gui;
 
+import java.awt.Color;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableModel;
+
+import entity.LoaiSanpham;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.LoaiSanphamService;
+
 /**
  *
  * @author Lenovo
  */
 public class TypeProductFrame extends javax.swing.JFrame {
-
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/loaiSanphamService";
+	DefaultTableModel tableModel;
+	List<LoaiSanpham> listLoaiSP;
     /**
      * Creates new form TypeProductFrame
      */
     public TypeProductFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        tableModel = (DefaultTableModel) tableCapNhatLoaiSP.getModel();
+        showData();
+        reset();
     }
-
+    
+    private void showData() {
+    	try {
+			LoaiSanphamService dao = (LoaiSanphamService) Naming.lookup(url);
+			listLoaiSP = dao.getLoaiSP();
+			tableModel.setRowCount(0);
+			for	(LoaiSanpham loaisp : listLoaiSP) {
+	    		tableModel.addRow(new Object[] {loaisp.getId(),loaisp.getTenloaisp()});
+	    	}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    private void regex() {
+    	String malsp = txtMaLoaiSP.getText();
+    	String tenloaisp = txtTenLoaiSP.getText();
+    	if(malsp.equals("")) {
+    		JOptionPane.showMessageDialog(this, "Mã loại sản phẩm không hợp lệ","Error!",JOptionPane.ERROR_MESSAGE);
+    		txtMaLoaiSP.setBorder(new LineBorder(Color.red));
+    	}else {
+			txtMaLoaiSP.setBorder(new LineBorder(Color.green));
+		}
+    	if(tenloaisp.equals("")) {
+    		JOptionPane.showMessageDialog(this, "Tên loại sản phẩm không hợp lệ","Error!",JOptionPane.ERROR_MESSAGE);
+    		txtTenLoaiSP.setBorder(new LineBorder(Color.red));
+    	}else {
+			txtTenLoaiSP.setBorder(new LineBorder(Color.green));
+		}
+    }
+    private boolean checkInput() {
+    	String malsp = txtMaLoaiSP.getText();
+    	String tenlsp = txtTenLoaiSP.getText();
+    	if(malsp.equals("") && tenlsp.equals("")) {
+    		return false;
+    	}else {
+			return true;
+		}
+    }
+    private void reset() {
+    	txtMaLoaiSP.setEnabled(false);
+    	txtMaLoaiSP.setText("");
+    	txtTenLoaiSP.setEnabled(false);
+    	txtTenLoaiSP.setText("");
+    	btnLuu.setEnabled(false);
+    	btnQuayLai.setEnabled(false);
+    	btnSua.setEnabled(false);
+    	btnXoa.setEnabled(false);
+    	txtMaLoaiSP.setBorder(new LineBorder(Color.black));
+    	txtTenLoaiSP.setBorder(new LineBorder(Color.black));
+    }
+    private void clickBtnThem() {
+    	reset();
+    	txtMaLoaiSP.setEnabled(true);
+    	txtTenLoaiSP.setEnabled(true);
+    	btnQuayLai.setEnabled(true);
+    	btnLuu.setEnabled(true);
+    }
+    private boolean checkStatusBtnLuu(String malsp) {
+    	int select = tableCapNhatLoaiSP.getSelectedRow();
+    	if(select == -1) {
+    		return false;
+    	}else {
+			if(malsp.equals(listLoaiSP.get(select).getId())) {
+				return true;
+			}else {
+				return false;
+			}
+		}
+    }
+    private boolean checkMaLoaiSP(String malsp) {
+    	for(LoaiSanpham loaisp: listLoaiSP) {
+    		if(malsp.equals(loaisp.getId())) {
+    			JOptionPane.showMessageDialog(this, "Mã loại sản phẩm tồn tại","Error!",JOptionPane.ERROR_MESSAGE);
+        		txtMaLoaiSP.setBorder(new LineBorder(Color.red));
+    			return true;
+    		}
+    	}
+    	txtMaLoaiSP.setBorder(new LineBorder(Color.green));
+    	return false;
+    }
+    private int notify(String title, String message) {
+    	int n = JOptionPane.showConfirmDialog(this, message,title,JOptionPane.YES_NO_OPTION);
+    	return n;
+    }
+    private void clickBtnLuu() {
+    	try {
+			LoaiSanphamService dao = (LoaiSanphamService) Naming.lookup(url);
+			String malsp = txtMaLoaiSP.getText();
+	    	String tenlsp = txtTenLoaiSP.getText();
+	    	if(checkStatusBtnLuu(malsp) == true) {
+	    		regex();
+	    		if(checkInput() == true && notify("", "Bạn có chắc muốn lưu thay đổi không?") == 0) {
+	    			dao.updateLoaiSP(new LoaiSanpham(malsp,tenlsp));
+	    			showData();
+	    			reset();
+	    			JOptionPane.showMessageDialog(this,"Bạn đã cập nhật thành công!");
+	    		}
+	    	}else {
+				regex();
+				if(checkInput() == true && checkMaLoaiSP(malsp) == false && notify("", "Bạn có chắc muốn lưu loại sản phẩm này không") == 0) {
+					dao.insertLoaiSP(new LoaiSanpham(malsp,tenlsp));
+					showData();
+					reset();
+					JOptionPane.showMessageDialog(this,"Bạn đã lưu thành công!");
+				}
+			}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -253,31 +390,60 @@ public class TypeProductFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_txtTenLoaiSPActionPerformed
 
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThemActionPerformed
-        
+        clickBtnThem();
     }//GEN-LAST:event_btnThemActionPerformed
 
     private void btnXoaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnXoaActionPerformed
         // TODO add your handling code here:
+    	try {
+			LoaiSanphamService dao = (LoaiSanphamService) Naming.lookup(url);
+			String malsp = txtMaLoaiSP.getText();
+	    	if(notify("", "Bạn có chắc muốn xóa nhà cung cấp ngày không ?") == 0) {
+	    		boolean success = dao.deleteLoaiSP(malsp);
+	    		if(success == true) {
+	    			JOptionPane.showMessageDialog(this,"Bạn đã xóa thành công!");
+	    			showData();
+	    		}else {
+	    			JOptionPane.showMessageDialog(this,"Lỗi không thể xóa!","", JOptionPane.ERROR_MESSAGE);
+	    			showData();
+				}
+	    	}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	reset();
         
     }//GEN-LAST:event_btnXoaActionPerformed
 
     private void btnSuaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSuaActionPerformed
         // TODO add your handling code here:
+    	txtTenLoaiSP.setEnabled(true);
+    	btnLuu.setEnabled(true);
        
     }//GEN-LAST:event_btnSuaActionPerformed
 
     private void btnLuuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLuuActionPerformed
         // TODO add your handling code here:
+    	clickBtnLuu();
+    	reset();
     }//GEN-LAST:event_btnLuuActionPerformed
 
     private void btnQuayLaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQuayLaiActionPerformed
         // TODO add your handling code here:
-      
+      reset();
     }//GEN-LAST:event_btnQuayLaiActionPerformed
 
     private void tableCapNhatLoaiSPMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableCapNhatLoaiSPMouseClicked
         // TODO add your handling code here:
-       
+    	int index = tableCapNhatLoaiSP.getSelectedRow();
+    	txtMaLoaiSP.setText(listLoaiSP.get(index).getId());
+    	txtTenLoaiSP.setText(listLoaiSP.get(index).getTenloaisp());
+    	txtMaLoaiSP.setEnabled(false);
+    	txtTenLoaiSP.setEnabled(false);
+    	btnSua.setEnabled(true);
+    	btnXoa.setEnabled(true);
+    	btnQuayLai.setEnabled(true);
     }//GEN-LAST:event_tableCapNhatLoaiSPMouseClicked
 
     /**

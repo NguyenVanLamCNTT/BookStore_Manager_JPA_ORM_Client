@@ -434,7 +434,7 @@ public class ProductFrame extends javax.swing.JFrame {
 			System.setSecurityManager(new SecurityManager());
 		}
 		try {
-			SanphamService sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.4:1099/sanphamService");
+			SanphamService sanphamDao = (SanphamService) Naming.lookup("rmi://172.18.48.1:1099/sanphamService");
 			List<Sanpham> sanphams = sanphamDao.getSanpham();
 			DefaultTableModel model = new DefaultTableModel(new Object[] {"Loại sản phẩm","Mã sản phẩm","Tên sản phẩm" , "Đơn giá", "Số lượng tồn", "Trạng thái",
 					"Mã nhà sản xuất"},0 );
