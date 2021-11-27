@@ -5,17 +5,61 @@
  */
 package gui;
 
+import java.awt.HeadlessException;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
+import entity.Nhanvien;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.NhanvienService;
+
 /**
  *
  * @author Lenovo
  */
 public class EmployeeFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/nhanvienService";
     /**
      * Creates new form EmployeeFrame
      */
+	SecurityManager securityManager;
+	NhanvienService nhanvienService;
+	int option;
+	String manv,mk;
     public EmployeeFrame() {
         initComponents();
+        this.setLocationRelativeTo(null);
+        securityManager=System.getSecurityManager();
+        if(securityManager==null) {
+        	System.setProperty("java.security.policy","policy/policy.policy");
+        	System.setSecurityManager(new SecurityManager());
+        }
+        try {
+			nhanvienService=(NhanvienService) Naming.lookup(url);
+			showThongTin();
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     /**
@@ -128,7 +172,12 @@ public class EmployeeFrame extends javax.swing.JFrame {
         btnSuaTK1.setText("Tài khoản");
         btnSuaTK1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSuaTK1ActionPerformed(evt);
+                try {
+					btnSuaTK1ActionPerformed(evt);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
@@ -267,30 +316,262 @@ public class EmployeeFrame extends javax.swing.JFrame {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 405, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
+        tableQLNV.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseClicked(java.awt.event.MouseEvent evt) {
+				tableQLNVMouseClicked(evt);
+			}
+		});
+        btnLuu.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                try {
+					btnLuuActionPerformed(evt);
+				} catch (HeadlessException | RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        });
+        btnSua.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSuaActionPerformed(evt);
+            }
+        });
+        btnQuayLai.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	btnQuaylaiActionPerformed(evt);
+            }
+        });
+        btnXoa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	try {
+					btnXoaActionPerformed(evt);
+				} catch (HeadlessException | RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        });
+        txtChucVu.setEnabled(false);
+		labelChucVu.setEnabled(false);
+		txtDiaChi.setEnabled(false);
+		labelDiaChi.setEnabled(false);
+		txtEmail.setEnabled(false);
+		labelEmail.setEnabled(false);
+		txtMaNV.setEnabled(false);
+		labelMaNV.setEnabled(false);
+		txtSDT.setEnabled(false);
+		labelSDT.setEnabled(false);
+		txtTenNV.setEnabled(false);
+		labelTenNV.setEnabled(false);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void txtMaNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMaNVActionPerformed
+    private void btnXoaActionPerformed(ActionEvent evt) throws HeadlessException, RemoteException {
+		// TODO Auto-generated method stub
+    	String manv = txtMaNV.getText();
+		int yes = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa nhân viên!", "Warnning!",
+				JOptionPane.YES_NO_CANCEL_OPTION);
+		if (yes == JOptionPane.YES_OPTION) {
+			if (nhanvienService.delete(manv)) {
+				JOptionPane.showMessageDialog(this, "Xóa thành công!");
+				try {
+					showThongTin();
+					clearData();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else
+				JOptionPane.showMessageDialog(this, "Xóa không thành công! Vui lòng xem lại!");
+		}
+	}
+
+	private void btnQuaylaiActionPerformed(ActionEvent evt) {
+		// TODO Auto-generated method stub
+		clearData();
+	}
+
+	private void btnSuaActionPerformed(ActionEvent evt) {
+		// TODO Auto-generated method stub
+		txtChucVu.setEnabled(true);
+		labelChucVu.setEnabled(true);
+		txtDiaChi.setEnabled(true);
+		labelDiaChi.setEnabled(true);
+		txtEmail.setEnabled(true);
+		labelEmail.setEnabled(true);
+		txtMaNV.setEnabled(true);
+		labelMaNV.setEnabled(true);
+		txtSDT.setEnabled(true);
+		labelSDT.setEnabled(true);
+		txtTenNV.setEnabled(true);
+		labelTenNV.setEnabled(true);
+		option = 2;
+	}
+
+	protected void tableQLNVMouseClicked(MouseEvent evt) {
+		// TODO Auto-generated method stub
+    	int click = tableQLNV.getSelectedRow();
+		TableModel model = tableQLNV.getModel();
+		txtMaNV.setText(model.getValueAt(click, 0).toString());
+		txtTenNV.setText(model.getValueAt(click, 1).toString());
+		txtSDT.setText(model.getValueAt(click, 2).toString());
+		txtChucVu.setText(model.getValueAt(click, 3).toString());
+		txtEmail.setText(model.getValueAt(click, 5).toString());
+		txtDiaChi.setText(model.getValueAt(click, 4).toString());
+	}
+
+	private void txtMaNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMaNVActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtMaNVActionPerformed
 
     private void txtTenNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTenNVActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtTenNVActionPerformed
-
+    private void btnLuuActionPerformed(java.awt.event.ActionEvent evt) throws HeadlessException, RemoteException {//GEN-FIRST:event_txtTenNVActionPerformed
+        // TODO add your handling code here:
+    	if (option == 1) {
+			insertNV();
+            reset();
+		} else if (option == 2) {
+			updateNV();
+			reset();
+		}
+    }
     private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
+    	dispose();
+		new HomeFrame().setVisible(true);
     }//GEN-LAST:event_btnThoatActionPerformed
-
+    
+    private void updateNV() throws HeadlessException, RemoteException {
+		Nhanvien nv = revertNV2();
+		int yes = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn sửa nhân viên!", "Warnning!",
+				JOptionPane.YES_NO_CANCEL_OPTION);
+		if (yes == JOptionPane.YES_OPTION) {
+			if (nhanvienService.update(nv)) {
+				JOptionPane.showMessageDialog(this, "Sửa thành công!");
+				try {
+					showThongTin();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				clearData();
+			} else
+				JOptionPane.showMessageDialog(this, "Sửa thất bại !Vui lòng xem  lại");
+		}
+	}
     private void btnThemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThemActionPerformed
         // TODO add your handling code here:
+    	int yes = JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn thêm nhân viên!", "Warnning!",
+				JOptionPane.YES_NO_CANCEL_OPTION);
+		if (yes == JOptionPane.YES_OPTION) {
+			txtChucVu.setEnabled(true);
+			labelChucVu.setEnabled(true);
+			txtDiaChi.setEnabled(true);
+			labelDiaChi.setEnabled(true);
+			txtEmail.setEnabled(true);
+			labelEmail.setEnabled(true);
+			txtMaNV.setEnabled(true);
+			labelMaNV.setEnabled(true);
+			txtSDT.setEnabled(true);
+			labelSDT.setEnabled(true);
+			txtTenNV.setEnabled(true);
+			labelTenNV.setEnabled(true);
+			option = 1;
+		}
     }//GEN-LAST:event_btnThemActionPerformed
+    private void insertNV() throws HeadlessException, RemoteException {
+		Nhanvien nv = revertNV();
+		String manv = txtMaNV.getText();
+		String tennv = txtTenNV.getText();
+		String sdt = txtSDT.getText();
+		String chucvu = txtChucVu.getText();
+		String diachi = txtDiaChi.getText();
+		String email = txtEmail.getText();
+		if (manv.equals("") || tennv.equals("") || sdt.equals("") || chucvu.equals("") || diachi.equals("")
+				|| email.equals("")) {
+			JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!");
+			return;
+		} else {
+			if (nhanvienService.insert(nv)) {
 
-    private void btnSuaTK1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSuaTK1ActionPerformed
+				JOptionPane.showMessageDialog(this, "Thêm nhân viên thành công");
+				clearData();
+				try {
+					showThongTin();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else
+				JOptionPane.showMessageDialog(this, "Thêm nhân viên thất bại! Vui lòng xem lại!");
+		}
+	}
+    private void showThongTin() throws SQLException, RemoteException {
+		DefaultTableModel tableModel = new DefaultTableModel(new Object[] { "Mã nhân viên", "Tên nhân viên",
+				"Số điện thoại", "Chức vụ", "Địa chỉ", "Email", "Mật khẩu" }, 0);
+		List<Nhanvien> dsnv;
+		dsnv =nhanvienService.getdsNV();
+		for (Nhanvien nv : dsnv) {
+			tableModel.addRow(new Object[] { nv.getId(), nv.getTenNhanvien(), nv.getSodienthoai(), nv.getChucvu(),
+					nv.getDiachi(), nv.getEmail(), nv.getMatkhau() });
+		}
+		tableQLNV.setModel(tableModel);
+	}
+    private void btnSuaTK1ActionPerformed(java.awt.event.ActionEvent evt) throws RemoteException {//GEN-FIRST:event_btnSuaTK1ActionPerformed
         // TODO add your handling code here:
+    	String manv = txtMaNV.getText();
+		String mk = nhanvienService.getMK(manv);
+		new AccountFrame(manv, mk).setVisible(true);
+		
     }//GEN-LAST:event_btnSuaTK1ActionPerformed
+    private void reset() {
+		   clearData();
+		   txtChucVu.setEnabled(false); 
+	        txtDiaChi.setEnabled(false); 
+	        txtEmail.setEnabled(false); 
+	        txtMaNV.setEnabled(false); 
+	        txtSDT.setEnabled(false); 
+	        txtTenNV.setEnabled(false); 
+	   }
 
+	private Nhanvien revertNV() {
+		// TODO Auto-generated method stub
+		String manv = txtMaNV.getText();
+		String tennv = txtTenNV.getText();
+		String sdt = txtSDT.getText();
+		String chucvu = txtChucVu.getText();
+		String diachi = txtDiaChi.getText();
+		String email = txtEmail.getText();
+		String mk = "123456";
+
+		return new Nhanvien(manv, tennv, sdt, chucvu, diachi, email, mk);
+	}
+	private Nhanvien revertNV2() {
+		// TODO Auto-generated method stub
+		String manv = txtMaNV.getText();
+		String tennv = txtTenNV.getText();
+		String sdt = txtSDT.getText();
+		String chucvu = txtChucVu.getText();
+		String diachi = txtDiaChi.getText();
+		String email = txtEmail.getText();
+		String mk="123456";
+		int luongcb=3000000;
+
+		return new Nhanvien(manv, tennv, sdt, chucvu, diachi, email,mk,luongcb);
+	}
+	private void clearData() {
+		// TODO Auto-generated method stub
+		txtChucVu.setText("");
+		txtDiaChi.setText("");
+		txtEmail.setText("");
+		txtMaNV.setText("");
+		txtSDT.setText("");
+		txtTenNV.setText("");
+		txtMaNV.requestFocus();
+	}
     /**
      * @param args the command line arguments
      */

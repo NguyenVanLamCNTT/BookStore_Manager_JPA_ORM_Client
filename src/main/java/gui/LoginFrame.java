@@ -5,17 +5,57 @@
  */
 package gui;
 
+import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+
+import javax.swing.JOptionPane;
+
+import io.github.cdimascio.dotenv.Dotenv;
+import service.LoginServiece;
+
+
+
 /**
  *
  * @author Lenovo
  */
 public class LoginFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/loginServiece";
     /**
      * Creates new form LoginFrame
      */
+	public static String manv;
+    public static String mk;
+    SecurityManager securityManager;
+    
+    LoginServiece loginServiece;
     public LoginFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        securityManager=System.getSecurityManager(); 
+    	if(securityManager==null) {
+    		System.setProperty("java.security.policy", "policy/policy.policy");
+    		System.setSecurityManager(new SecurityManager());
+    	}
+    	try {
+    		loginServiece= (LoginServiece) Naming.lookup(url);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	
     }
 
     /**
@@ -59,7 +99,17 @@ public class LoginFrame extends javax.swing.JFrame {
         btnDangNhap.setText("Đăng nhập");
         btnDangNhap.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDangNhapActionPerformed(evt);
+                try {
+					btnDangNhapActionPerformed(evt);
+				} catch (MalformedURLException | RemoteException | NotBoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        });
+        btnThoat.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnThoatActionPerformed(evt);
             }
         });
 
@@ -143,15 +193,46 @@ public class LoginFrame extends javax.swing.JFrame {
     private void txtMKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMKActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtMKActionPerformed
-
-    private void btnDangNhapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDangNhapActionPerformed
+    
+    private void btnDangNhapActionPerformed(java.awt.event.ActionEvent evt) throws MalformedURLException, RemoteException, NotBoundException {//GEN-FIRST:event_btnDangNhapActionPerformed
         // TODO add your handling code here:
+    	
+    	if(txtTenTK.getText().equals("") || txtMK.getText().equals("")) {
+    		JOptionPane.showMessageDialog(this,"Vui lòng nhập đầy đủ thông tin!");
+    		txtMK.setText("");
+    	}else try {
+    		if(loginServiece.checkLogin(txtTenTK.getText(),txtMK.getText())==true) {
+    			dispose();
+    			manv=getMaNVText();
+    			manv=txtTenTK.getText();
+    			mk=getMKText();
+    			mk=txtMK.getText();
+    			new HomeFrame().setVisible(true);
+    		}else {
+    			JOptionPane.showMessageDialog(this,"Sai thông tin tài khoản!!");
+    			txtMK.setText("");
+    		}
+    	}catch(Exception e1){
+    		System.err.println(e1);
+    	}
+
     }//GEN-LAST:event_btnDangNhapActionPerformed
 
+	public String getMaNVText() {
+		return manv;
+	}
+
+	public String getMKText() {
+		return mk;
+	}
     private void txtTenTKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTenTKActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtTenTKActionPerformed
-
+    private void btnThoatActionPerformed(java.awt.event.ActionEvent evt)  {                                         
+        // TODO add your handling code here:
+    	WindowEvent closingEvent = new WindowEvent( this, WindowEvent.WINDOW_CLOSING);
+    	Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(closingEvent);
+    }
     /**
      * @param args the command line arguments
      */

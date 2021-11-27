@@ -5,18 +5,83 @@
  */
 package gui;
 
+import java.awt.event.ActionEvent;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+
+import io.github.cdimascio.dotenv.Dotenv;
+import service.NhanvienService;
+
 /**
  *
  * @author Lenovo
  */
 public class HomeFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/nhanvienService";
     /**
      * Creates new form HomeFrame
      */
-	
+	SecurityManager securityManager;
+	NhanvienService nhanvienService;
+
     public HomeFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        securityManager=System.getSecurityManager(); 
+    	if(securityManager==null) {
+    		System.setProperty("java.security.policy", "policy/policy.policy");
+    		System.setSecurityManager(new SecurityManager());
+    	}try {
+    		nhanvienService=(NhanvienService) Naming.lookup(url);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	try {
+			phanquyen();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	try {
+    		String manv=new LoginFrame().getMaNVText();
+			labelvalueTenNV.setText(nhanvienService.getTenNV(manv));
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	new Thread(){
+            public void run(){
+                while(true){
+                    Calendar ca = new GregorianCalendar();
+                    int hour = ca.get(Calendar.HOUR);
+                    int minute = ca.get(Calendar.MINUTE);
+                    int second = ca.get(Calendar.SECOND);
+                    int PM_AM = ca.get(Calendar.AM_PM);
+                    
+                    String day;
+                    if (PM_AM == 1) {
+                        day = "PM";
+                    }else{
+                        day = "AM";
+                    }
+                    String time = hour + ":"+minute+":"+second+ " " +day;
+                    labelDongHo.setText(time);
+                }
+            }
+        }.start();
     }
 
     /**
@@ -31,7 +96,6 @@ public class HomeFrame extends javax.swing.JFrame {
         panelManHinhChinh = new javax.swing.JPanel();
         labelManHinhChinh = new javax.swing.JLabel();
         btnQuanLySP = new javax.swing.JButton();
-        btnQuanLyDH = new javax.swing.JButton();
         btnDangXuat = new javax.swing.JButton();
         btnQuanLyNV = new javax.swing.JButton();
         btnBanHang = new javax.swing.JButton();
@@ -44,26 +108,22 @@ public class HomeFrame extends javax.swing.JFrame {
         btnThongKeDT = new javax.swing.JButton();
         panelDongHo = new javax.swing.JPanel();
         labelDongHo = new javax.swing.JLabel();
-        btnChamCong = new javax.swing.JButton();
         labelvalueTenNV = new javax.swing.JLabel();
         menuBarHome = new javax.swing.JMenuBar();
         mnuDanhMuc = new javax.swing.JMenu();
-        mnuItemSP = new javax.swing.JMenuItem();
-        mnuItemDH = new javax.swing.JMenuItem();
+        mnuItemDDHT = new javax.swing.JMenuItem();
         mnuItemNV = new javax.swing.JMenuItem();
         mnuItemLSP = new javax.swing.JMenuItem();
         mnuItemNCC = new javax.swing.JMenuItem();
+        mnuItemSach = new javax.swing.JMenuItem();
         mnuTmKiem = new javax.swing.JMenu();
-        mnuItemTKSP = new javax.swing.JMenuItem();
+        mnuItemTKDHHT = new javax.swing.JMenuItem();
         mnuItemTKHD = new javax.swing.JMenuItem();
-        mnuItemTKDH = new javax.swing.JMenuItem();
         mnuItemTKNCC = new javax.swing.JMenuItem();
         mnuitemTKLSP = new javax.swing.JMenuItem();
+        mnuItemTKSach = new javax.swing.JMenuItem();
         mnuXuLy = new javax.swing.JMenu();
-        mnuItemChamCong = new javax.swing.JMenuItem();
         mnuItemBanHang = new javax.swing.JMenuItem();
-        mnuItemDoiMatKhau = new javax.swing.JMenuItem();
-        mnuItemDatHang = new javax.swing.JMenuItem();
         mnuThongKe = new javax.swing.JMenu();
         mnuItemThongKeSP = new javax.swing.JMenuItem();
         mnuItemThongKeDT = new javax.swing.JMenuItem();
@@ -85,18 +145,12 @@ public class HomeFrame extends javax.swing.JFrame {
         btnQuanLySP.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnQuanLySP.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnQuanLySPActionPerformed(evt);
-            }
-        });
-
-        btnQuanLyDH.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        btnQuanLyDH.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/trolley.png"))); // NOI18N
-        btnQuanLyDH.setText("Quản lý đơn hàng");
-        btnQuanLyDH.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnQuanLyDH.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnQuanLyDH.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnQuanLyDHActionPerformed(evt);
+                try {
+					btnQuanLySPActionPerformed(evt);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
@@ -162,7 +216,12 @@ public class HomeFrame extends javax.swing.JFrame {
         btnCapNhatLSP.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         btnCapNhatLSP.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCapNhatLSPActionPerformed(evt);
+                try {
+					btnCapNhatLSPActionPerformed(evt);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
 
@@ -216,15 +275,6 @@ public class HomeFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        btnChamCong.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        btnChamCong.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/attendance.png"))); // NOI18N
-        btnChamCong.setText("Chấm công");
-        btnChamCong.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnChamCongActionPerformed(evt);
-            }
-        });
-
         labelvalueTenNV.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         labelvalueTenNV.setText("value tên nhân viên");
 
@@ -237,41 +287,36 @@ public class HomeFrame extends javax.swing.JFrame {
                 .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelManHinhChinhLayout.createSequentialGroup()
                         .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnQuanLyNV, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnBanHang, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btnBanHang, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnThongKeDT, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(33, 33, 33)
-                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                .addComponent(btnThongKeDT, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnThongKeSP, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                .addComponent(btnCapNhatNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(50, 50, 50)
-                                .addComponent(btnQuanLyDH, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(63, 63, 63)
+                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnThongKeSP, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnCapNhatNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(50, 50, 50)
                         .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(btnCapNhatLSP, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btnThoat, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(61, 61, 61)
+                        .addGap(63, 63, 63)
                         .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(btnDangXuat, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnQuanLySP, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(btnQuanLySP, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(panelManHinhChinhLayout.createSequentialGroup()
                         .addComponent(labelManHinhChinh)
                         .addGap(271, 271, 271)
                         .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jSeparator1)
                             .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                        .addComponent(labelHoTenNV)
-                                        .addGap(28, 28, 28)
-                                        .addComponent(labelvalueTenNV))
-                                    .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(btnChamCong, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(btnQuanLyNV, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(panelManHinhChinhLayout.createSequentialGroup()
+                                            .addComponent(labelHoTenNV)
+                                            .addGap(28, 28, 28)
+                                            .addComponent(labelvalueTenNV))
                                         .addComponent(panelDongHo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(0, 0, Short.MAX_VALUE)))))
+                                .addGap(0, 15, Short.MAX_VALUE)))))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         panelManHinhChinhLayout.setVerticalGroup(
@@ -285,55 +330,39 @@ public class HomeFrame extends javax.swing.JFrame {
                             .addComponent(labelHoTenNV)
                             .addComponent(labelvalueTenNV))
                         .addGap(18, 18, 18)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnChamCong, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
-                .addComponent(panelDongHo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(69, 69, 69)
-                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnBanHang, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnCapNhatNCC, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 77, Short.MAX_VALUE)
+                        .addComponent(panelDongHo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(69, 69, 69)
+                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(btnBanHang, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnCapNhatNCC, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnCapNhatLSP, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btnQuanLySP, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnQuanLyNV, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
+                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(btnThoat, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnThongKeSP, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnDangXuat, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                        .addGap(0, 7, Short.MAX_VALUE)
-                        .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                .addComponent(btnQuanLyDH, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(45, 45, 45)
-                                .addComponent(btnThongKeSP, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(btnQuanLyNV, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(panelManHinhChinhLayout.createSequentialGroup()
-                                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(btnCapNhatLSP, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btnQuanLySP, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(45, 45, 45)
-                                .addGroup(panelManHinhChinhLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(btnThoat, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(btnDangXuat, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(btnThongKeDT, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(29, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnThongKeDT, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(38, 38, 38))
         );
 
         mnuDanhMuc.setText("Danh mục");
 
-        mnuItemSP.setText("Sản phẩm");
-        mnuItemSP.addActionListener(new java.awt.event.ActionListener() {
+        mnuItemDDHT.setText("Đồ dùng học tập");
+        mnuItemDDHT.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemSPActionPerformed(evt);
+            	mnuItemDHActionPerformed(evt);
             }
         });
-        mnuDanhMuc.add(mnuItemSP);
-
-        mnuItemDH.setText("Đơn hàng");
-        mnuItemDH.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemDHActionPerformed(evt);
-            }
-        });
-        mnuDanhMuc.add(mnuItemDH);
+        mnuDanhMuc.add(mnuItemDDHT);
 
         mnuItemNV.setText("Nhân viên");
         mnuItemNV.addActionListener(new java.awt.event.ActionListener() {
@@ -346,7 +375,12 @@ public class HomeFrame extends javax.swing.JFrame {
         mnuItemLSP.setText("Loại sản phẩm");
         mnuItemLSP.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemLSPActionPerformed(evt);
+                try {
+					mnuItemLSPActionPerformed(evt);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
         mnuDanhMuc.add(mnuItemLSP);
@@ -359,17 +393,30 @@ public class HomeFrame extends javax.swing.JFrame {
         });
         mnuDanhMuc.add(mnuItemNCC);
 
+        mnuItemSach.setText("Sách");
+        mnuItemSach.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                try {
+					mnuItemSachActionPerformed(evt);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        });
+        mnuDanhMuc.add(mnuItemSach);
+
         menuBarHome.add(mnuDanhMuc);
 
         mnuTmKiem.setText("Tìm kiếm");
 
-        mnuItemTKSP.setText("Tìm kiếm sản phẩm");
-        mnuItemTKSP.addActionListener(new java.awt.event.ActionListener() {
+        mnuItemTKDHHT.setText("Tìm kiếm Đồ dùng học tập");
+        mnuItemTKDHHT.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemTKSPActionPerformed(evt);
+                mnuItemTKDHHTActionPerformed(evt);
             }
         });
-        mnuTmKiem.add(mnuItemTKSP);
+        mnuTmKiem.add(mnuItemTKDHHT);
 
         mnuItemTKHD.setText("Tìm kiếm hóa đơn");
         mnuItemTKHD.addActionListener(new java.awt.event.ActionListener() {
@@ -378,14 +425,6 @@ public class HomeFrame extends javax.swing.JFrame {
             }
         });
         mnuTmKiem.add(mnuItemTKHD);
-
-        mnuItemTKDH.setText("Tìm kiếm đơn hàng");
-        mnuItemTKDH.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemTKDHActionPerformed(evt);
-            }
-        });
-        mnuTmKiem.add(mnuItemTKDH);
 
         mnuItemTKNCC.setText("Tìm kiếm nhà cung cấp");
         mnuItemTKNCC.addActionListener(new java.awt.event.ActionListener() {
@@ -398,22 +437,27 @@ public class HomeFrame extends javax.swing.JFrame {
         mnuitemTKLSP.setText("Tìm kiếm loại sản phẩm");
         mnuitemTKLSP.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuitemTKLSPActionPerformed(evt);
+                try {
+					mnuitemTKLSPActionPerformed(evt);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         });
         mnuTmKiem.add(mnuitemTKLSP);
 
+        mnuItemTKSach.setText("Tìm kiếm sách");
+        mnuItemTKSach.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuItemTKSachActionPerformed(evt);
+            }
+        });
+        mnuTmKiem.add(mnuItemTKSach);
+
         menuBarHome.add(mnuTmKiem);
 
         mnuXuLy.setText("Xử lý");
-
-        mnuItemChamCong.setText("Chấm công");
-        mnuItemChamCong.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemChamCongActionPerformed(evt);
-            }
-        });
-        mnuXuLy.add(mnuItemChamCong);
 
         mnuItemBanHang.setText("Bán hàng");
         mnuItemBanHang.addActionListener(new java.awt.event.ActionListener() {
@@ -422,22 +466,6 @@ public class HomeFrame extends javax.swing.JFrame {
             }
         });
         mnuXuLy.add(mnuItemBanHang);
-
-        mnuItemDoiMatKhau.setText("Đổi mật khẩu");
-        mnuItemDoiMatKhau.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemDoiMatKhauActionPerformed(evt);
-            }
-        });
-        mnuXuLy.add(mnuItemDoiMatKhau);
-
-        mnuItemDatHang.setText("Đặt hàng");
-        mnuItemDatHang.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuItemDatHangActionPerformed(evt);
-            }
-        });
-        mnuXuLy.add(mnuItemDatHang);
 
         menuBarHome.add(mnuXuLy);
 
@@ -483,142 +511,196 @@ public class HomeFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnQuanLySPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQuanLySPActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_btnQuanLySPActionPerformed
+    private void mnuItemDHActionPerformed(ActionEvent evt) {
+		// TODO Auto-generated method stub
+		 dispose();
+		 new ProductFrame().setVisible(true);
+		 
+	}
 
-    private void btnQuanLyDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQuanLyDHActionPerformed
+	private void btnQuanLySPActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_btnQuanLySPActionPerformed
         // TODO add your handling code here:
-       
-    }//GEN-LAST:event_btnQuanLyDHActionPerformed
+    	dispose();
+    	new ProductFrame().setVisible(true);
+    }//GEN-LAST:event_btnQuanLySPActionPerformed
 
     private void btnDangXuatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDangXuatActionPerformed
         // TODO add your handling code her
-        
+    	dispose();
+    	new LoginFrame().setVisible(true);
     }//GEN-LAST:event_btnDangXuatActionPerformed
 
     private void btnQuanLyNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQuanLyNVActionPerformed
         // TODO add your handling code here:
-       
+    	dispose();
+    	new EmployeeFrame().setVisible(true);
     }//GEN-LAST:event_btnQuanLyNVActionPerformed
 
     private void btnBanHangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBanHangActionPerformed
         // TODO add your handling code here:
-       
+    	dispose();
+    	new CustomerFrame().setVisible(true);;
     }//GEN-LAST:event_btnBanHangActionPerformed
 
     private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
-       
+    	System.exit(1);
     }//GEN-LAST:event_btnThoatActionPerformed
 
     private void btnCapNhatNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCapNhatNCCActionPerformed
         // TODO add your handling code here:
-       
-      
+    	dispose();
+    	new ProducerFrame().setVisible(true);
     }//GEN-LAST:event_btnCapNhatNCCActionPerformed
 
-    private void btnCapNhatLSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCapNhatLSPActionPerformed
+    private void btnCapNhatLSPActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_btnCapNhatLSPActionPerformed
         // TODO add your handling code here:
-       
+    	dispose();
+    	new TypeProductFrame().setVisible(true);
     }//GEN-LAST:event_btnCapNhatLSPActionPerformed
 
     private void btnThongKeSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThongKeSPActionPerformed
         // TODO add your handling code here:
-       
+    	dispose();
+    	new ProductStatisticsFrame().setVisible(true);
     }//GEN-LAST:event_btnThongKeSPActionPerformed
 
     private void btnThongKeDTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThongKeDTActionPerformed
         // TODO add your handling code here:
-       
+    	dispose();
+    	new StatisticalFrame().setVisible(true);
     }//GEN-LAST:event_btnThongKeDTActionPerformed
-
-    private void btnChamCongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChamCongActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnChamCongActionPerformed
-
-    private void mnuItemSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemSPActionPerformed
-       
-
-    }//GEN-LAST:event_mnuItemSPActionPerformed
-
-    private void mnuItemDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemDHActionPerformed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_mnuItemDHActionPerformed
-
-    private void mnuItemNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemNVActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemNVActionPerformed
-
-    private void mnuItemLSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemLSPActionPerformed
-        // TODO add your handling code here:
-       
-
-    }//GEN-LAST:event_mnuItemLSPActionPerformed
-
-    private void mnuItemNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemNCCActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemNCCActionPerformed
-
-    private void mnuItemTKSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKSPActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemTKSPActionPerformed
-
-    private void mnuItemTKHDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKHDActionPerformed
-        // TODO add your handling code here:
-      
-    }//GEN-LAST:event_mnuItemTKHDActionPerformed
-
-    private void mnuItemTKDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKDHActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemTKDHActionPerformed
-
-    private void mnuItemTKNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKNCCActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemTKNCCActionPerformed
-
-    private void mnuitemTKLSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuitemTKLSPActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuitemTKLSPActionPerformed
-
-    private void mnuItemChamCongActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemChamCongActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemChamCongActionPerformed
-
-    private void mnuItemBanHangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemBanHangActionPerformed
-        // TODO add your handling code here:
-      
-    }//GEN-LAST:event_mnuItemBanHangActionPerformed
-
-    private void mnuItemDoiMatKhauActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemDoiMatKhauActionPerformed
-        // TODO add your handling code here:
-       
-    }//GEN-LAST:event_mnuItemDoiMatKhauActionPerformed
-
-    private void mnuItemDatHangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemDatHangActionPerformed
-        // TODO add your handling code here:
-        
-    }//GEN-LAST:event_mnuItemDatHangActionPerformed
 
     private void mnuItemThongKeSPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemThongKeSPActionPerformed
         // TODO add your handling code here:
-        
+        ProductStatisticsFrame productStatisticsFrame = new ProductStatisticsFrame();
+        dispose();
+        productStatisticsFrame.setVisible(true);
     }//GEN-LAST:event_mnuItemThongKeSPActionPerformed
+
+    private void mnuItemNVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemNVActionPerformed
+        // TODO add your handling code here:
+        EmployeeFrame employeeFrame = new EmployeeFrame();
+        dispose();
+        employeeFrame.setVisible(true);
+    }//GEN-LAST:event_mnuItemNVActionPerformed
 
     private void mnuItemThongKeDTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemThongKeDTActionPerformed
         // TODO add your handling code here:
-       
+        StatisticalFrame statisticalFrame = new StatisticalFrame();
+        dispose();
+        statisticalFrame.setVisible(true);
     }//GEN-LAST:event_mnuItemThongKeDTActionPerformed
 
+    @SuppressWarnings("unused")
+	private void mnuItemDCHTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemDCHTActionPerformed
+    	 BookFrame productFrame = new BookFrame();
+         dispose();
+         productFrame.setVisible(true);
+    }//GEN-LAST:event_mnuItemDCHTActionPerformed
+
+    private void mnuItemLSPActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_mnuItemLSPActionPerformed
+        // TODO add your handling code here:
+        TypeProductFrame typeProductFrame;
+        typeProductFrame = new TypeProductFrame();
+		dispose();
+		typeProductFrame.setVisible(true);
+        
+    }//GEN-LAST:event_mnuItemLSPActionPerformed
+    private void mnuItemNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemNCCActionPerformed
+        // TODO add your handling code here:
+        ProducerFrame producerFrame;
+			producerFrame = new ProducerFrame();
+			 dispose();
+		     producerFrame.setVisible(true);
+		
+    }//GEN-LAST:event_mnuItemNCCActionPerformed
+
+    @SuppressWarnings("unused")
+	private void mnuItemTKDHHTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKDHHTActionPerformed
+        // TODO add your handling code here:
+    	dispose();
+    	new SearchProductFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemTKDHHTActionPerformed
+
+    private void mnuItemBanHangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemBanHangActionPerformed
+        // TODO add your handling code here:
+    	dispose();
+		new CustomerFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemBanHangActionPerformed
+                                               
+
+    private void mnuitemTKLSPActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_mnuitemTKLSPActionPerformed
+        // TODO add your handling code here:
+    	dispose();
+		new SearchTypeProductFrame().setVisible(true);
+    }//GEN-LAST:event_mnuitemTKLSPActionPerformed
+
+    private void mnuItemTKNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKNCCActionPerformed
+        // TODO add your handling code here:
+    	dispose();
+		new SearchProducerFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemTKNCCActionPerformed
+
+    private void mnuItemTKHDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKHDActionPerformed
+        // TODO add your handling code here:
+        dispose();
+	new SearchBillFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemTKHDActionPerformed
+
+    @SuppressWarnings("unused")
+	private void mnuItemSachActionPerformed(java.awt.event.ActionEvent evt) throws SQLException {//GEN-FIRST:event_mnuItemSachActionPerformed
+        dispose();
+		new BookFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemSachActionPerformed
+
+    @SuppressWarnings("unused")
+	private void mnuItemTKDDHTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKDDHTActionPerformed
+        // TODO add your handling code here:
+    	dispose();
+    	new SearchProductFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemTKDDHTActionPerformed
+
+    private void mnuItemTKSachActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuItemTKSachActionPerformed
+        dispose();
+        new SearchBookFrame().setVisible(true);
+    }//GEN-LAST:event_mnuItemTKSachActionPerformed
+
+    @SuppressWarnings("unused")
+	private void mnuItemDangxuatActionPerformed(java.awt.event.ActionEvent evt) {                                                
+        // TODO add your handling code here:
+    	dispose();
+    	new LoginFrame().setVisible(true);
+    }                                                
+    private void phanquyen() throws RemoteException {
+    	String manv = new LoginFrame().getMaNVText();
+    	String chucvu = nhanvienService.getChucVu(manv);
+    	if(chucvu.equals("NVBH")) {
+    		//mnuI.setEnabled(false);
+    		mnuItemLSP.setEnabled(false);
+    		mnuItemNCC.setEnabled(false);
+    		mnuItemNV.setEnabled(false);
+    	//	mnuItemSach.setEnabled(false);
+    		mnuItemThongKeDT.setEnabled(false);
+    		mnuItemThongKeSP.setEnabled(false);
+    		btnCapNhatLSP.setEnabled(false);
+    		btnCapNhatNCC.setEnabled(false);
+    		btnQuanLyNV.setEnabled(false);
+    		btnQuanLySP.setEnabled(false);
+    		btnThongKeDT.setEnabled(false);
+    		btnThongKeSP.setEnabled(false);
+    	}
+    	if(chucvu.equals("NVNK")) {
+    		mnuItemBanHang.setEnabled(false);
+    		mnuItemNV.setEnabled(false);
+    		mnuItemThongKeDT.setEnabled(false);
+    		mnuItemThongKeSP.setEnabled(false);
+    		btnBanHang.setEnabled(false);
+    		btnQuanLyNV.setEnabled(false);
+    		btnThongKeDT.setEnabled(false);
+    		btnThongKeSP.setEnabled(false);
+    	}
+    }
     /**
      * @param args the command line arguments
      */
@@ -649,7 +731,7 @@ public class HomeFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new HomeFrame().setVisible(true);
+				new HomeFrame().setVisible(true);
             }
         });
     }
@@ -658,9 +740,7 @@ public class HomeFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnBanHang;
     private javax.swing.JButton btnCapNhatLSP;
     private javax.swing.JButton btnCapNhatNCC;
-    private javax.swing.JButton btnChamCong;
     private javax.swing.JButton btnDangXuat;
-    private javax.swing.JButton btnQuanLyDH;
     private javax.swing.JButton btnQuanLyNV;
     private javax.swing.JButton btnQuanLySP;
     private javax.swing.JButton btnThoat;
@@ -674,18 +754,15 @@ public class HomeFrame extends javax.swing.JFrame {
     private javax.swing.JMenuBar menuBarHome;
     private javax.swing.JMenu mnuDanhMuc;
     private javax.swing.JMenuItem mnuItemBanHang;
-    private javax.swing.JMenuItem mnuItemChamCong;
-    private javax.swing.JMenuItem mnuItemDH;
-    private javax.swing.JMenuItem mnuItemDatHang;
-    private javax.swing.JMenuItem mnuItemDoiMatKhau;
+    private javax.swing.JMenuItem mnuItemDDHT;
     private javax.swing.JMenuItem mnuItemLSP;
     private javax.swing.JMenuItem mnuItemNCC;
     private javax.swing.JMenuItem mnuItemNV;
-    private javax.swing.JMenuItem mnuItemSP;
-    private javax.swing.JMenuItem mnuItemTKDH;
+    private javax.swing.JMenuItem mnuItemSach;
+    private javax.swing.JMenuItem mnuItemTKDHHT;
     private javax.swing.JMenuItem mnuItemTKHD;
     private javax.swing.JMenuItem mnuItemTKNCC;
-    private javax.swing.JMenuItem mnuItemTKSP;
+    private javax.swing.JMenuItem mnuItemTKSach;
     private javax.swing.JMenuItem mnuItemThongKeDT;
     private javax.swing.JMenuItem mnuItemThongKeSP;
     private javax.swing.JMenu mnuThongKe;

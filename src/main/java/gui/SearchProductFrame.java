@@ -37,14 +37,14 @@ public class SearchProductFrame extends javax.swing.JFrame {
 	String url = dotenv.get("URL") + "/timkiemService";
 	String urlSP =  dotenv.get("URL") + "/sanphamService";
 	DefaultTableModel tableModel;
-	List<Sanpham> listBook;
+	List<Sanpham> listSP;
     /**
-     * Creates new form SearchProductFrame
+     * Creates new form SearchBookFrame
      */
     public SearchProductFrame() {
         initComponents();
         setLocationRelativeTo(null);
-      	tableModel = (DefaultTableModel) tableSP.getModel();
+        tableModel = (DefaultTableModel) tableSP.getModel();
     }
     private void submitTimKiem() {
     	Map<String, String> map = new HashMap<String, String>();
@@ -52,31 +52,25 @@ public class SearchProductFrame extends javax.swing.JFrame {
 			map.put("ma_sanpham", txtMaSP.getText());
 		}
 		if(txtTenSP.getText().equals("") == false) {
-			map.put("ten_sp", txtTenSP.getText() );
+			map.put("ten_sp", txtTenSP.getText());
 		}
-		if(txtNCC.getText().equals("") == false) {
-			map.put("ten_ncc",txtNCC.getText());
-		}
-		if(txtNXB.getText().equals("") == false) {
-			map.put("nhaxuatban",txtNXB.getText());
-		}
-		if(txtTenTG.getText().equals("") == false) {
-			map.put("ten_tacgia",txtTenTG.getText());
+		if(txtTT.getText().equals("") == false) {
+			map.put("trangthai",txtTT.getText());
 		}
     	if(map.size() == 0) {
     		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
     	}else {
     		try {
 				TimKiemService dao = (TimKiemService) Naming.lookup(url);
-				listBook = dao.searchSanPhamSach(map);
-				if(listBook.size() == 0) {
+				listSP = dao.searchSanPhamDDHT(map);
+				if(listSP.size() == 0) {
 	        		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
 	        	}else {
 	        		tableModel.setRowCount(0);
-	            	for(Sanpham l: listBook) {
-	            		tableModel.addRow(new Object[] {l.getId(),l.getTenSanpham(),l.getDongia(),l.getSoluongton(),l.getTenTacgia(),l.getSotrang(),l.getNhaxuatban(),l.getTrangthai()});
-	            	}
-	    		}
+	        		for(Sanpham sp: listSP) {
+	        			tableModel.addRow(new Object[] {sp.getId(),sp.getTenSanpham(),sp.getDongia(),sp.getSoluongton(),sp.getTrangthai()});
+	        		}
+        		}
 			} catch (MalformedURLException | RemoteException | NotBoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -108,28 +102,24 @@ public class SearchProductFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        panelTKSP2 = new javax.swing.JPanel();
+        panelTKSP = new javax.swing.JPanel();
         btnTimDDH = new javax.swing.JButton();
-        jSeparator6 = new javax.swing.JSeparator();
+        jSeparator4 = new javax.swing.JSeparator();
         labelTkSP = new javax.swing.JLabel();
         btnThoat = new javax.swing.JButton();
         labelHinhAnh = new javax.swing.JLabel();
-        jScrollPane3 = new javax.swing.JScrollPane();
+        jScrollPane1 = new javax.swing.JScrollPane();
         tableSP = new javax.swing.JTable();
         txtMaSP = new javax.swing.JTextField();
         labelMaSP = new javax.swing.JLabel();
-        labelTenTG = new javax.swing.JLabel();
-        txtTenTG = new javax.swing.JTextField();
         labelTenSP = new javax.swing.JLabel();
         txtTenSP = new javax.swing.JTextField();
-        labelNXB = new javax.swing.JLabel();
-        txtNXB = new javax.swing.JTextField();
-        labelNCC = new javax.swing.JLabel();
-        txtNCC = new javax.swing.JTextField();
+        labelTT = new javax.swing.JLabel();
+        txtTT = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        panelTKSP2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelTKSP.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         btnTimDDH.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnTimDDH.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/search.png"))); // NOI18N
@@ -141,7 +131,7 @@ public class SearchProductFrame extends javax.swing.JFrame {
         });
 
         labelTkSP.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
-        labelTkSP.setText("Tìm kiếm sách");
+        labelTkSP.setText("Tìm Kiếm Đồ dùng học tập");
 
         btnThoat.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/out.png"))); // NOI18N
         btnThoat.setText("Thoát");
@@ -160,11 +150,11 @@ public class SearchProductFrame extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Mã sản phẩm", "Tên sản phẩm", "Đơn giá", "Số lượng", "Tên tác giả", "Số trang", "Nhà xuất bản", "Trạng thái"
+                "Mã sản phẩm", "Tên sản phẩm", "Đơn giá", "Số lượng", "Trạng thái"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, true, false
+                false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -176,101 +166,80 @@ public class SearchProductFrame extends javax.swing.JFrame {
                 tableSPMouseClicked(evt);
             }
         });
-        jScrollPane3.setViewportView(tableSP);
+        jScrollPane1.setViewportView(tableSP);
 
         labelMaSP.setText("Mã sản phẩm");
 
-        labelTenTG.setText("Tên tác giả");
-
         labelTenSP.setText("Tên sản phẩm");
 
-        labelNXB.setText("Nhà xuất bản");
+        labelTT.setText("Trạng thái");
 
-        labelNCC.setText("Nhà cung cấp");
-
-        javax.swing.GroupLayout panelTKSP2Layout = new javax.swing.GroupLayout(panelTKSP2);
-        panelTKSP2.setLayout(panelTKSP2Layout);
-        panelTKSP2Layout.setHorizontalGroup(
-            panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelTKSP2Layout.createSequentialGroup()
+        javax.swing.GroupLayout panelTKSPLayout = new javax.swing.GroupLayout(panelTKSP);
+        panelTKSP.setLayout(panelTKSPLayout);
+        panelTKSPLayout.setHorizontalGroup(
+            panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelTKSPLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panelTKSP2Layout.createSequentialGroup()
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator6)
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
+                .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelTKSPLayout.createSequentialGroup()
+                        .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jSeparator4)
+                            .addGroup(panelTKSPLayout.createSequentialGroup()
                                 .addGap(17, 17, 17)
                                 .addComponent(btnThoat)
-                                .addGap(339, 339, 339)
+                                .addGap(220, 220, 220)
                                 .addComponent(labelTkSP)
-                                .addGap(0, 654, Short.MAX_VALUE)))
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())
-                    .addGroup(panelTKSP2Layout.createSequentialGroup()
-                        .addGap(62, 62, 62)
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelNXB)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtNXB, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelTenTG)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtTenTG, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelMaSP)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtMaSP, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(panelTKSPLayout.createSequentialGroup()
+                        .addGap(64, 64, 64)
+                        .addComponent(labelMaSP)
+                        .addGap(18, 18, 18)
+                        .addComponent(txtMaSP, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(52, 52, 52)
                         .addComponent(labelTenSP)
                         .addGap(18, 18, 18)
                         .addComponent(txtTenSP, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(57, 57, 57)
-                        .addComponent(labelNCC)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 61, Short.MAX_VALUE)
+                        .addComponent(labelTT)
                         .addGap(18, 18, 18)
-                        .addComponent(txtNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtTT, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(btnTimDDH, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(30, 30, 30))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelTKSP2Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelTKSPLayout.createSequentialGroup()
                         .addComponent(labelHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane3)
+                        .addComponent(jScrollPane1)
                         .addContainerGap())))
         );
-        panelTKSP2Layout.setVerticalGroup(
-            panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelTKSP2Layout.createSequentialGroup()
+        panelTKSPLayout.setVerticalGroup(
+            panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelTKSPLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(labelTkSP)
                     .addComponent(btnThoat))
                 .addGap(18, 18, 18)
-                .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(33, 33, 33)
-                .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(panelTKSP2Layout.createSequentialGroup()
-                        .addComponent(btnTimDDH)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(panelTKSP2Layout.createSequentialGroup()
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
+                .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnTimDDH)
+                    .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
+                            .addComponent(labelTT)
+                            .addComponent(txtTT))
+                        .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(labelMaSP)
                             .addComponent(txtMaSP)
                             .addComponent(labelTenSP)
-                            .addComponent(txtTenSP)
-                            .addComponent(labelNCC)
-                            .addComponent(txtNCC))
-                        .addGap(39, 39, 39)
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(labelNXB)
-                            .addComponent(txtNXB))
-                        .addGap(35, 35, 35)
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(labelTenTG)
-                            .addComponent(txtTenTG))
-                        .addGap(64, 64, 64)))
-                .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 458, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(txtTenSP))))
+                .addGap(18, 38, Short.MAX_VALUE)
+                .addGroup(panelTKSPLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelTKSPLayout.createSequentialGroup()
+                        .addComponent(labelHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 498, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -280,14 +249,14 @@ public class SearchProductFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(panelTKSP2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(panelTKSP, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(panelTKSP2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(panelTKSP, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -296,19 +265,21 @@ public class SearchProductFrame extends javax.swing.JFrame {
 
     private void btnTimDDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDHActionPerformed
         // TODO add your handling code here:
-    	submitTimKiem();
+         submitTimKiem();
     }//GEN-LAST:event_btnTimDDHActionPerformed
 
     private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
-        dispose();
-        new HomeFrame().setVisible(true);
+    	new HomeFrame().setVisible(true);
+    	dispose();
+       
     }//GEN-LAST:event_btnThoatActionPerformed
 
     private void tableSPMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableSPMouseClicked
         // TODO add your handling code here:
     	int index = tableSP.getSelectedRow();
-    	getAnh(listBook.get(index).getId());
+    	getAnh(listSP.get(index).getId());
+    	
     }//GEN-LAST:event_tableSPMouseClicked
 
     /**
@@ -337,11 +308,14 @@ public class SearchProductFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(SearchProductFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new SearchProductFrame().setVisible(true);
+               new SearchProductFrame().setVisible(true);
             }
         });
     }
@@ -349,21 +323,17 @@ public class SearchProductFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnThoat;
     private javax.swing.JButton btnTimDDH;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JSeparator jSeparator6;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JLabel labelHinhAnh;
     private javax.swing.JLabel labelMaSP;
-    private javax.swing.JLabel labelNCC;
-    private javax.swing.JLabel labelNXB;
+    private javax.swing.JLabel labelTT;
     private javax.swing.JLabel labelTenSP;
-    private javax.swing.JLabel labelTenTG;
     private javax.swing.JLabel labelTkSP;
-    private javax.swing.JPanel panelTKSP2;
+    private javax.swing.JPanel panelTKSP;
     private javax.swing.JTable tableSP;
     private javax.swing.JTextField txtMaSP;
-    private javax.swing.JTextField txtNCC;
-    private javax.swing.JTextField txtNXB;
+    private javax.swing.JTextField txtTT;
     private javax.swing.JTextField txtTenSP;
-    private javax.swing.JTextField txtTenTG;
     // End of variables declaration//GEN-END:variables
 }
