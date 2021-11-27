@@ -5,19 +5,66 @@
  */
 package gui;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.table.DefaultTableModel;
+
+import entity.Hoadon;
+import entity.Sanpham;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.TimKiemService;
+
 /**
  *
  * @author Lenovo
  */
 public class DetailBill extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/timkiemService";
+	DefaultTableModel tableModel;
+	List<List<String>> listSP;
+	List<Hoadon> thongtinhoadon;
     /**
      * Creates new form DetailBill
      */
-    public DetailBill() {
+    public DetailBill(String mahd) {
         initComponents();
+        setLocationRelativeTo(null);
+        tableModel = (DefaultTableModel) tableDanhSachSP.getModel();
+        showData(mahd);
     }
-
+    private void showData(String ma) {
+    	Map<String, String> map = new HashMap<String, String>();
+    	map.put("mahd", ma);
+    	try {
+			TimKiemService dao = (TimKiemService) Naming.lookup(url);
+			thongtinhoadon = dao.searchHoaDon(map);
+			listSP = dao.getDanhSachSP(ma);
+			valueMaHD.setText(ma);
+	    	valueTenNV.setText(thongtinhoadon.get(0).getNhanvien().getTenNhanvien());
+	    	valueTenKH.setText(thongtinhoadon.get(0).getKhachhang().getTenkh());
+	    	valueTongTien.setText(String.valueOf(thongtinhoadon.get(0).getTongtien()));
+	    	valueNgayLHD.setText(String.valueOf(thongtinhoadon.get(0).getNgaylapHd()));
+	    	tableModel.setRowCount(0);
+	    	for(List<String> l: listSP) {
+	    		tableModel.addRow(new Object[] {l.get(1),l.get(2),l.get(3),Double.parseDouble(l.get(3))*Double.parseDouble(l.get(2))});
+	    	}
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -44,7 +91,7 @@ public class DetailBill extends javax.swing.JFrame {
         tableDanhSachSP = new javax.swing.JTable();
         btnThoat = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+       
 
         panelChiTietHD.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
@@ -248,11 +295,11 @@ public class DetailBill extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new DetailBill().setVisible(true);
-            }
-        });
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+////            public void run() {
+////                new DetailBill().setVisible(true);
+////            }
+//        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

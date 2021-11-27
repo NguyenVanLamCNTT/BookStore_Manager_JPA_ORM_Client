@@ -5,19 +5,72 @@
  */
 package gui;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+import entity.LoaiSanpham;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.TimKiemService;
+
 /**
  *
  * @author Lenovo 
  */
 public class SearchTypeProductFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/timkiemService";
+	DefaultTableModel tableModel;
+	List<LoaiSanpham> listLSP;
     /**
      * Creates new form SearchTypeProductFrame
      */
     public SearchTypeProductFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        tableModel = (DefaultTableModel) tableLSP.getModel();
     }
 
+    private void submitTimKiem() {
+    	Map<String, String> map = new HashMap<String, String>();
+		if(txtMaLoaiSP.getText().equals("") == false) {
+			map.put("ma_loaisp","%" + txtMaLoaiSP.getText() + "%");
+		}
+		if(txtTenLoaiSP.getText().equals("") == false) {
+			map.put("tenloaisp", "%" +txtTenLoaiSP.getText() + "%");
+		}
+    	if(map.size() == 0) {
+    		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+    	}else {
+    		try {
+				TimKiemService dao = (TimKiemService) Naming.lookup(url);
+				listLSP = dao.searchLoaiSP(map);
+				if(listLSP.size() == 0) {
+	        		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+	        	}else {
+	        		tableModel.setRowCount(0);
+	            	for(LoaiSanpham l: listLSP) {
+	            		tableModel.addRow(new Object[] {l.getId(),l.getTenloaisp()});
+	            	}
+	    		}
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -178,7 +231,7 @@ public class SearchTypeProductFrame extends javax.swing.JFrame {
 
     private void btnTimDDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDHActionPerformed
         // TODO add your handling code here:
-        //    		submitTimKiem();
+    	submitTimKiem();
     }//GEN-LAST:event_btnTimDDHActionPerformed
 
     private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
