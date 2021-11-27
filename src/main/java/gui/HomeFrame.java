@@ -14,6 +14,7 @@ public class HomeFrame extends javax.swing.JFrame {
     /**
      * Creates new form HomeFrame
      */
+	
     public HomeFrame() {
         initComponents();
     }

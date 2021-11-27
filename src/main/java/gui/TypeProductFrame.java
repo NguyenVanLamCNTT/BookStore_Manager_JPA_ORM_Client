@@ -22,7 +22,7 @@ import service.LoaiSanphamService;
 
 /**
  *
- * @author Lenovo
+ * @author Lenovo 
  */
 public class TypeProductFrame extends javax.swing.JFrame {
 	Dotenv dotenv = Dotenv.configure()

@@ -39,7 +39,7 @@ public class ProducerFrame extends javax.swing.JFrame {
 	List<Nhacungcap> listNcc;
     /**
      * Creates new form ProducerFrame
-     */
+     */ 
     public ProducerFrame() {
         initComponents();
         setLocationRelativeTo(null);

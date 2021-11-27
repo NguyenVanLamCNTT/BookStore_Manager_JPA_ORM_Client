@@ -7,7 +7,7 @@ package gui;
 
 /**
  *
- * @author Lenovo
+ * @author Lenovo 
  */
 public class StatisticalFrame extends javax.swing.JFrame {
 

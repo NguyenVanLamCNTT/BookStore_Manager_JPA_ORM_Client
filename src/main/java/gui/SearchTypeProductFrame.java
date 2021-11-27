@@ -7,7 +7,7 @@ package gui;
 
 /**
  *
- * @author Lenovo
+ * @author Lenovo 
  */
 public class SearchTypeProductFrame extends javax.swing.JFrame {
 

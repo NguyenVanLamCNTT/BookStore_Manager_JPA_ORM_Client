@@ -13,7 +13,7 @@ public class OrderFrame extends javax.swing.JFrame {
 
     /**
      * Creates new form OrderFrame
-     */
+     */  
     public OrderFrame() {
         initComponents();
     }

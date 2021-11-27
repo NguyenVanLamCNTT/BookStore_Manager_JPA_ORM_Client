@@ -23,6 +23,7 @@ import javax.swing.table.TableModel;
 import entity.LoaiSanpham;
 import entity.Nhacungcap;
 import entity.Sanpham;
+import io.github.cdimascio.dotenv.Dotenv;
 import service.SanphamService;
 
 /**
@@ -39,7 +40,12 @@ public class BookFrame extends javax.swing.JFrame {
 	int chucnang = 0;
 	String path = "";
 	byte[] hinhanh = null;
-
+	Dotenv dotenv = Dotenv.configure() 
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/sanphamService";
 	public BookFrame() {
 		initComponents();
 		this.setLocationRelativeTo(null);
@@ -49,7 +55,7 @@ public class BookFrame extends javax.swing.JFrame {
 			System.setSecurityManager(new SecurityManager());
 		}
 		try {
-			sanphamDao = (SanphamService) Naming.lookup("rmi://192.168.1.6:1099/sanphamService");
+			sanphamDao = (SanphamService) Naming.lookup(url);
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
@@ -460,7 +466,6 @@ public class BookFrame extends javax.swing.JFrame {
 			e.printStackTrace();
 		}
 	}// GEN-LAST:event_btnTimActionPerformed
-
 	private void btnChonanhActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnChonanhActionPerformed
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new File(System.getProperty("user.home")));
