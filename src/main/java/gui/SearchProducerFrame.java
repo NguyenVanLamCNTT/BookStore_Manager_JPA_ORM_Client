@@ -5,19 +5,76 @@
  */
 package gui;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+
+import entity.Nhacungcap;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.TimKiemService;
+
 /**
  *
  * @author Lenovo
  */
 public class SearchProducerFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/timkiemService";
+	DefaultTableModel tableModel;
+	List<Nhacungcap> listNCC;
     /**
      * Creates new form SearchProducerFrame
      */
     public SearchProducerFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+        tableModel = (DefaultTableModel) tableNCC.getModel();
     }
 
+    private void submitTimKiem() {
+    	Map<String, String> map = new HashMap<String, String>();
+		if(txtMaNCC.getText().equals("") == false) {
+			map.put("ma_ncc","%" + txtMaNCC.getText() + "%");
+		}
+		if(txtTenNCC.getText().equals("") == false) {
+			map.put("ten_ncc", "%" +txtTenNCC.getText() + "%");
+		}
+		if(txtDiaChi.getText().equals("") == false) {
+			map.put("diachi", "%" +txtDiaChi.getText() + "%");
+		}
+    	if(map.size() == 0) {
+    		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+    	}else {
+    		try {
+				TimKiemService dao = (TimKiemService) Naming.lookup(url);
+				listNCC = dao.searchNhaCC(map);
+				if(listNCC.size() == 0) {
+	        		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+	        	}else {
+	        		tableModel.setRowCount(0);
+	            	for(Nhacungcap l: listNCC) {
+	            		tableModel.addRow(new Object[] {l.getId(),l.getTenNhaCC(),l.getDiachi()});
+	            	}
+	    		}
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -28,44 +85,44 @@ public class SearchProducerFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         panelTKNCC1 = new javax.swing.JPanel();
-        btnTimDDH1 = new javax.swing.JButton();
+        btnTimNCC = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JSeparator();
-        labelTkNCC1 = new javax.swing.JLabel();
-        btnThoat1 = new javax.swing.JButton();
+        labelTkNCC = new javax.swing.JLabel();
+        btnThoat = new javax.swing.JButton();
         jScrollPane5 = new javax.swing.JScrollPane();
-        tableNCC1 = new javax.swing.JTable();
-        labelMaNCC1 = new javax.swing.JLabel();
-        txtMaNCC1 = new javax.swing.JTextField();
-        labelTenNCC1 = new javax.swing.JLabel();
-        txtTenNCC1 = new javax.swing.JTextField();
-        labelDiaChi1 = new javax.swing.JLabel();
-        txtDiaChi1 = new javax.swing.JTextField();
+        tableNCC = new javax.swing.JTable();
+        labelMaNCC = new javax.swing.JLabel();
+        txtMaNCC = new javax.swing.JTextField();
+        labelTenNCC = new javax.swing.JLabel();
+        txtTenNCC = new javax.swing.JTextField();
+        labelDiaChi = new javax.swing.JLabel();
+        txtDiaChi = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         panelTKNCC1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        btnTimDDH1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        btnTimDDH1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/search.png"))); // NOI18N
-        btnTimDDH1.setText("Tìm");
-        btnTimDDH1.addActionListener(new java.awt.event.ActionListener() {
+        btnTimNCC.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        btnTimNCC.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/search.png"))); // NOI18N
+        btnTimNCC.setText("Tìm");
+        btnTimNCC.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTimDDH1ActionPerformed(evt);
+                btnTimNCCActionPerformed(evt);
             }
         });
 
-        labelTkNCC1.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
-        labelTkNCC1.setText("Tìm kiếm nhà cung cấp");
+        labelTkNCC.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
+        labelTkNCC.setText("Tìm kiếm nhà cung cấp");
 
-        btnThoat1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/out.png"))); // NOI18N
-        btnThoat1.setText("Thoát");
-        btnThoat1.addActionListener(new java.awt.event.ActionListener() {
+        btnThoat.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/out.png"))); // NOI18N
+        btnThoat.setText("Thoát");
+        btnThoat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnThoat1ActionPerformed(evt);
+                btnThoatActionPerformed(evt);
             }
         });
 
-        tableNCC1.setModel(new javax.swing.table.DefaultTableModel(
+        tableNCC.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -81,16 +138,16 @@ public class SearchProducerFrame extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane5.setViewportView(tableNCC1);
+        jScrollPane5.setViewportView(tableNCC);
 
-        labelMaNCC1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        labelMaNCC1.setText("Mã nhà cung cấp");
+        labelMaNCC.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        labelMaNCC.setText("Mã nhà cung cấp");
 
-        labelTenNCC1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        labelTenNCC1.setText("Tên nhà cung cấp");
+        labelTenNCC.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        labelTenNCC.setText("Tên nhà cung cấp");
 
-        labelDiaChi1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        labelDiaChi1.setText("Địa chỉ");
+        labelDiaChi.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        labelDiaChi.setText("Địa chỉ");
 
         javax.swing.GroupLayout panelTKNCC1Layout = new javax.swing.GroupLayout(panelTKNCC1);
         panelTKNCC1.setLayout(panelTKNCC1Layout);
@@ -102,9 +159,9 @@ public class SearchProducerFrame extends javax.swing.JFrame {
                     .addComponent(jSeparator5)
                     .addGroup(panelTKNCC1Layout.createSequentialGroup()
                         .addGap(17, 17, 17)
-                        .addComponent(btnThoat1)
+                        .addComponent(btnThoat)
                         .addGap(339, 339, 339)
-                        .addComponent(labelTkNCC1)
+                        .addComponent(labelTkNCC)
                         .addGap(0, 291, Short.MAX_VALUE))
                     .addComponent(jScrollPane5))
                 .addContainerGap())
@@ -112,19 +169,19 @@ public class SearchProducerFrame extends javax.swing.JFrame {
                 .addGap(22, 22, 22)
                 .addGroup(panelTKNCC1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(panelTKNCC1Layout.createSequentialGroup()
-                        .addComponent(labelDiaChi1)
+                        .addComponent(labelDiaChi)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtDiaChi1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtDiaChi, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(panelTKNCC1Layout.createSequentialGroup()
-                        .addComponent(labelMaNCC1)
+                        .addComponent(labelMaNCC)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtMaNCC1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtMaNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(140, 140, 140)
-                .addComponent(labelTenNCC1)
+                .addComponent(labelTenNCC)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtTenNCC1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtTenNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnTimDDH1, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnTimNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(75, 75, 75))
         );
         panelTKNCC1Layout.setVerticalGroup(
@@ -132,21 +189,21 @@ public class SearchProducerFrame extends javax.swing.JFrame {
             .addGroup(panelTKNCC1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panelTKNCC1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(labelTkNCC1)
-                    .addComponent(btnThoat1))
+                    .addComponent(labelTkNCC)
+                    .addComponent(btnThoat))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator5, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
                 .addGroup(panelTKNCC1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtMaNCC1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelMaNCC1)
-                    .addComponent(txtTenNCC1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelTenNCC1)
-                    .addComponent(btnTimDDH1))
+                    .addComponent(txtMaNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelMaNCC)
+                    .addComponent(txtTenNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelTenNCC)
+                    .addComponent(btnTimNCC))
                 .addGap(65, 65, 65)
                 .addGroup(panelTKNCC1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtDiaChi1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelDiaChi1))
+                    .addComponent(txtDiaChi, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(labelDiaChi))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 57, Short.MAX_VALUE)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 416, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(14, 14, 14))
@@ -172,16 +229,16 @@ public class SearchProducerFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnTimDDH1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDH1ActionPerformed
+    private void btnTimNCCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimNCCActionPerformed
         // TODO add your handling code here:
-        //    	submitTimKiem();
-    }//GEN-LAST:event_btnTimDDH1ActionPerformed
+         submitTimKiem();
+    }//GEN-LAST:event_btnTimNCCActionPerformed
 
-    private void btnThoat1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoat1ActionPerformed
+    private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
         dispose();
         new HomeFrame().setVisible(true);
-    }//GEN-LAST:event_btnThoat1ActionPerformed
+    }//GEN-LAST:event_btnThoatActionPerformed
 
     /**
      * @param args the command line arguments
@@ -220,30 +277,17 @@ public class SearchProducerFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnThoat;
-    private javax.swing.JButton btnThoat1;
-    private javax.swing.JButton btnTimDDH;
-    private javax.swing.JButton btnTimDDH1;
-    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JButton btnTimNCC;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JLabel labelDiaChi;
-    private javax.swing.JLabel labelDiaChi1;
     private javax.swing.JLabel labelMaNCC;
-    private javax.swing.JLabel labelMaNCC1;
     private javax.swing.JLabel labelTenNCC;
-    private javax.swing.JLabel labelTenNCC1;
     private javax.swing.JLabel labelTkNCC;
-    private javax.swing.JLabel labelTkNCC1;
-    private javax.swing.JPanel panelTKNCC;
     private javax.swing.JPanel panelTKNCC1;
     private javax.swing.JTable tableNCC;
-    private javax.swing.JTable tableNCC1;
     private javax.swing.JTextField txtDiaChi;
-    private javax.swing.JTextField txtDiaChi1;
     private javax.swing.JTextField txtMaNCC;
-    private javax.swing.JTextField txtMaNCC1;
     private javax.swing.JTextField txtTenNCC;
-    private javax.swing.JTextField txtTenNCC1;
     // End of variables declaration//GEN-END:variables
 }

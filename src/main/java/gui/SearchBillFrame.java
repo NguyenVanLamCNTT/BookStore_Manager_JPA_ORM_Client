@@ -5,19 +5,83 @@
  */
 package gui;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+import entity.Hoadon;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.TimKiemService;
+
 /**
  *
  * @author Lenovo
  */
 public class SearchBillFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/timkiemService";
+	DefaultTableModel tableModel;
+	List<Hoadon> listHoadon;
     /**
      * Creates new form SearchBillFrame
      */
     public SearchBillFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+		tableModel = (DefaultTableModel) tableHD.getModel();
     }
-
+    private void submitTimKiem() {
+    	Map<String, String> map = new HashMap<String, String>();
+		if(txtMaHD.getText().equals("") == false) {
+			map.put("mahd", txtMaHD.getText());
+		}
+		if(txtSDTKH.getText().equals("") == false) {
+			map.put("kh.sodienthoai", txtSDTKH.getText());
+		}
+		if(txtTenKH.getText().equals("") == false) {
+			map.put("tenkh", txtTenKH.getText());
+		}
+		if(txtTenNhanVien.getText().equals("") == false) {
+			map.put("ten__nv",txtTenNhanVien.getText());
+		}
+		if(dateNgayLHD.getDate() != null) {
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			map.put("ngaylap_hd", df.format(dateNgayLHD.getDate()));
+		}
+    	if(map.size() == 0) {
+    		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+    	}else {
+    		try {
+				TimKiemService dao = (TimKiemService) Naming.lookup(url);
+				listHoadon = dao.searchHoaDon(map);
+				if(listHoadon.size() == 0) {
+					JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+				}else {
+					tableModel.setRowCount(0);
+					for(Hoadon hd: listHoadon) {
+						tableModel.addRow(new Object[] {hd.getMahd(),hd.getNhanvien().getTenNhanvien(),hd.getKhachhang().getTenkh(),hd.getTongtien(),hd.getNgaylapHd()});
+					}
+				}
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -131,16 +195,27 @@ public class SearchBillFrame extends javax.swing.JFrame {
                         .addComponent(btnThoat)
                         .addGap(339, 339, 339)
                         .addComponent(labelTKHD)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addGap(0, 386, Short.MAX_VALUE))
                     .addComponent(jScrollPane2))
                 .addContainerGap())
             .addGroup(panelTKHDLayout.createSequentialGroup()
-                .addGap(38, 38, 38)
+                .addGap(28, 28, 28)
                 .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelTKHDLayout.createSequentialGroup()
-                        .addComponent(labelMaHD)
-                        .addGap(18, 18, 18)
-                        .addComponent(txtMaHD, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(labelNgayLapHD)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(dateNgayLHD, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(panelTKHDLayout.createSequentialGroup()
+                        .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(panelTKHDLayout.createSequentialGroup()
+                                .addComponent(labelMaHD)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtMaHD, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(panelTKHDLayout.createSequentialGroup()
+                                .addComponent(labelTenNV)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtTenNhanVien, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(labelTenKH)
@@ -149,20 +224,9 @@ public class SearchBillFrame extends javax.swing.JFrame {
                         .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtSDTKH, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtTenKH, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(330, 330, 330)
+                        .addGap(156, 156, 156)
                         .addComponent(btnTimDDH, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(29, 29, 29))
-                    .addGroup(panelTKHDLayout.createSequentialGroup()
-                        .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(panelTKHDLayout.createSequentialGroup()
-                                .addComponent(labelTenNV)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtTenNhanVien, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelTKHDLayout.createSequentialGroup()
-                                .addComponent(labelNgayLapHD)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(dateNgayLHD, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(29, 29, 29))))
         );
         panelTKHDLayout.setVerticalGroup(
             panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -173,38 +237,34 @@ public class SearchBillFrame extends javax.swing.JFrame {
                     .addComponent(btnThoat))
                 .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelTKHDLayout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(panelTKHDLayout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(panelTKHDLayout.createSequentialGroup()
-                                        .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                            .addComponent(labelTenKH)
-                                            .addComponent(txtTenKH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(50, 50, 50)
-                                        .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                            .addComponent(labelSDTKH)
-                                            .addComponent(txtSDTKH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(labelTenKH)
+                                    .addComponent(txtTenKH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(50, 50, 50)
+                                .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(labelSDTKH)
+                                    .addComponent(txtSDTKH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(labelMaHD)
-                                        .addComponent(txtMaHD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addGroup(panelTKHDLayout.createSequentialGroup()
-                                .addGap(60, 60, 60)
-                                .addComponent(btnTimDDH)))
-                        .addGap(0, 0, Short.MAX_VALUE))
+                                        .addComponent(labelTenNV)
+                                        .addComponent(txtTenNhanVien, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(labelMaHD)
+                                .addComponent(txtMaHD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(panelTKHDLayout.createSequentialGroup()
-                        .addGap(138, 138, 138)
-                        .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(labelTenNV)
-                            .addComponent(txtTenNhanVien, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(60, 60, 60)
+                        .addComponent(btnTimDDH)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+                .addGroup(panelTKHDLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelTKHDLayout.createSequentialGroup()
+                        .addGap(3, 3, 3)
                         .addComponent(labelNgayLapHD))
-                    .addGroup(panelTKHDLayout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(dateNgayLHD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(67, 67, 67)
+                    .addComponent(dateNgayLHD, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(37, 37, 37)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 421, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -231,14 +291,19 @@ public class SearchBillFrame extends javax.swing.JFrame {
 
     private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
+		new HomeFrame().setVisible(true);
+		dispose();
     }//GEN-LAST:event_btnThoatActionPerformed
 
     private void tableHDMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableHDMouseClicked
         // TODO add your handling code here:
+    	int index = tableHD.getSelectedRow();
+		new DetailBill(String.valueOf(listHoadon.get(index).getMahd())).setVisible(true);
     }//GEN-LAST:event_tableHDMouseClicked
 
     private void btnTimDDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDHActionPerformed
         // TODO add your handling code here:
+    	submitTimKiem();
     }//GEN-LAST:event_btnTimDDHActionPerformed
 
     /**

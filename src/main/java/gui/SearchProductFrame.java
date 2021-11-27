@@ -5,19 +5,100 @@
  */
 package gui;
 
+import java.awt.Image;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+import entity.Sanpham;
+import io.github.cdimascio.dotenv.Dotenv;
+import service.SanphamService;
+import service.TimKiemService;
+
 /**
  *
  * @author Lenovo
  */
 public class SearchProductFrame extends javax.swing.JFrame {
 
+	Dotenv dotenv = Dotenv.configure()
+			  .directory("assets\\.env")
+			  .ignoreIfMalformed()
+			  .ignoreIfMissing()
+			  .load();
+	String url = dotenv.get("URL") + "/timkiemService";
+	String urlSP =  dotenv.get("URL") + "/sanphamService";
+	DefaultTableModel tableModel;
+	List<Sanpham> listBook;
     /**
      * Creates new form SearchProductFrame
      */
     public SearchProductFrame() {
         initComponents();
+        setLocationRelativeTo(null);
+      	tableModel = (DefaultTableModel) tableSP.getModel();
     }
-
+    private void submitTimKiem() {
+    	Map<String, String> map = new HashMap<String, String>();
+		if(txtMaSP.getText().equals("") == false) {
+			map.put("ma_sanpham", txtMaSP.getText());
+		}
+		if(txtTenSP.getText().equals("") == false) {
+			map.put("ten_sp", txtTenSP.getText() );
+		}
+		if(txtNCC.getText().equals("") == false) {
+			map.put("ten_ncc",txtNCC.getText());
+		}
+		if(txtNXB.getText().equals("") == false) {
+			map.put("nhaxuatban",txtNXB.getText());
+		}
+		if(txtTenTG.getText().equals("") == false) {
+			map.put("ten_tacgia",txtTenTG.getText());
+		}
+    	if(map.size() == 0) {
+    		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+    	}else {
+    		try {
+				TimKiemService dao = (TimKiemService) Naming.lookup(url);
+				listBook = dao.searchSanPhamSach(map);
+				if(listBook.size() == 0) {
+	        		JOptionPane.showMessageDialog(this, "Không tìm thấy kết quả! Vui lòng nhập lại từ khóa","Error!",JOptionPane.ERROR_MESSAGE);
+	        	}else {
+	        		tableModel.setRowCount(0);
+	            	for(Sanpham l: listBook) {
+	            		tableModel.addRow(new Object[] {l.getId(),l.getTenSanpham(),l.getDongia(),l.getSoluongton(),l.getTenTacgia(),l.getSotrang(),l.getNhaxuatban(),l.getTrangthai()});
+	            	}
+	    		}
+			} catch (MalformedURLException | RemoteException | NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
+    private void getAnh(int masp) {
+    	try {
+			SanphamService dao = (SanphamService) Naming.lookup(urlSP);
+			Sanpham sp = dao.getSanphamById(masp);
+			byte[] hinhanh = sp.getHinhanh();
+			ImageIcon icon = new ImageIcon(hinhanh);
+			Image img = icon.getImage();
+			Image newImg = img.getScaledInstance(labelHinhAnh.getWidth(), labelHinhAnh.getHeight(), Image.SCALE_SMOOTH);
+			ImageIcon imgIcon = new ImageIcon(newImg);
+			labelHinhAnh.setIcon(imgIcon);
+		} catch (MalformedURLException | RemoteException | NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -28,57 +109,53 @@ public class SearchProductFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         panelTKSP2 = new javax.swing.JPanel();
-        btnTimDDH2 = new javax.swing.JButton();
+        btnTimDDH = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JSeparator();
-        labelTkSP2 = new javax.swing.JLabel();
-        btnThoat2 = new javax.swing.JButton();
-        labelHinhAnh2 = new javax.swing.JLabel();
+        labelTkSP = new javax.swing.JLabel();
+        btnThoat = new javax.swing.JButton();
+        labelHinhAnh = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        tableSP2 = new javax.swing.JTable();
-        txtMaSP2 = new javax.swing.JTextField();
-        labelMaSP2 = new javax.swing.JLabel();
-        labelTenTG2 = new javax.swing.JLabel();
-        txtTenTG2 = new javax.swing.JTextField();
-        labelTenSP2 = new javax.swing.JLabel();
-        txtTenSP2 = new javax.swing.JTextField();
-        labelNXB2 = new javax.swing.JLabel();
-        txtNXB2 = new javax.swing.JTextField();
-        labelDonGia2 = new javax.swing.JLabel();
-        cbDonGia2 = new javax.swing.JComboBox<>();
-        labelLoaiSP2 = new javax.swing.JLabel();
-        txtLoaiSP2 = new javax.swing.JTextField();
-        labelNCC2 = new javax.swing.JLabel();
-        txtNCC2 = new javax.swing.JTextField();
+        tableSP = new javax.swing.JTable();
+        txtMaSP = new javax.swing.JTextField();
+        labelMaSP = new javax.swing.JLabel();
+        labelTenTG = new javax.swing.JLabel();
+        txtTenTG = new javax.swing.JTextField();
+        labelTenSP = new javax.swing.JLabel();
+        txtTenSP = new javax.swing.JTextField();
+        labelNXB = new javax.swing.JLabel();
+        txtNXB = new javax.swing.JTextField();
+        labelNCC = new javax.swing.JLabel();
+        txtNCC = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         panelTKSP2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        btnTimDDH2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        btnTimDDH2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/search.png"))); // NOI18N
-        btnTimDDH2.setText("Tìm");
-        btnTimDDH2.addActionListener(new java.awt.event.ActionListener() {
+        btnTimDDH.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        btnTimDDH.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/search.png"))); // NOI18N
+        btnTimDDH.setText("Tìm");
+        btnTimDDH.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTimDDH2ActionPerformed(evt);
+                btnTimDDHActionPerformed(evt);
             }
         });
 
-        labelTkSP2.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
-        labelTkSP2.setText("Tìm kiếm sách");
+        labelTkSP.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
+        labelTkSP.setText("Tìm kiếm sách");
 
-        btnThoat2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/out.png"))); // NOI18N
-        btnThoat2.setText("Thoát");
-        btnThoat2.addActionListener(new java.awt.event.ActionListener() {
+        btnThoat.setIcon(new javax.swing.ImageIcon(getClass().getResource("/image/out.png"))); // NOI18N
+        btnThoat.setText("Thoát");
+        btnThoat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnThoat2ActionPerformed(evt);
+                btnThoatActionPerformed(evt);
             }
         });
 
-        labelHinhAnh2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelHinhAnh2.setText("Ảnh");
-        labelHinhAnh2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        labelHinhAnh.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelHinhAnh.setText("Ảnh");
+        labelHinhAnh.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        tableSP2.setModel(new javax.swing.table.DefaultTableModel(
+        tableSP.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -94,28 +171,22 @@ public class SearchProductFrame extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        tableSP2.addMouseListener(new java.awt.event.MouseAdapter() {
+        tableSP.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tableSP2MouseClicked(evt);
+                tableSPMouseClicked(evt);
             }
         });
-        jScrollPane3.setViewportView(tableSP2);
+        jScrollPane3.setViewportView(tableSP);
 
-        labelMaSP2.setText("Mã sản phẩm");
+        labelMaSP.setText("Mã sản phẩm");
 
-        labelTenTG2.setText("Tên tác giả");
+        labelTenTG.setText("Tên tác giả");
 
-        labelTenSP2.setText("Tên sản phẩm");
+        labelTenSP.setText("Tên sản phẩm");
 
-        labelNXB2.setText("Nhà xuất bản");
+        labelNXB.setText("Nhà xuất bản");
 
-        labelDonGia2.setText("Đơn giá");
-
-        cbDonGia2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        labelLoaiSP2.setText("Loại sản phẩm");
-
-        labelNCC2.setText("Nhà cung cấp");
+        labelNCC.setText("Nhà cung cấp");
 
         javax.swing.GroupLayout panelTKSP2Layout = new javax.swing.GroupLayout(panelTKSP2);
         panelTKSP2.setLayout(panelTKSP2Layout);
@@ -129,49 +200,39 @@ public class SearchProductFrame extends javax.swing.JFrame {
                             .addComponent(jSeparator6)
                             .addGroup(panelTKSP2Layout.createSequentialGroup()
                                 .addGap(17, 17, 17)
-                                .addComponent(btnThoat2)
+                                .addComponent(btnThoat)
                                 .addGap(339, 339, 339)
-                                .addComponent(labelTkSP2)
+                                .addComponent(labelTkSP)
                                 .addGap(0, 654, Short.MAX_VALUE)))
                         .addContainerGap())
                     .addGroup(panelTKSP2Layout.createSequentialGroup()
                         .addGap(62, 62, 62)
                         .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelNXB2)
+                                .addComponent(labelNXB)
                                 .addGap(18, 18, 18)
-                                .addComponent(txtNXB2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtNXB, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelTenTG2)
+                                .addComponent(labelTenTG)
                                 .addGap(18, 18, 18)
-                                .addComponent(txtTenTG2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtTenTG, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelMaSP2)
+                                .addComponent(labelMaSP)
                                 .addGap(18, 18, 18)
-                                .addComponent(txtMaSP2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(51, 51, 51)
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelDonGia2)
-                                .addGap(18, 18, 18)
-                                .addComponent(cbDonGia2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelTenSP2)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtTenSP2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(panelTKSP2Layout.createSequentialGroup()
-                                .addComponent(labelLoaiSP2)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtLoaiSP2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(57, 57, 57)
-                        .addComponent(labelNCC2)
+                                .addComponent(txtMaSP, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(52, 52, 52)
+                        .addComponent(labelTenSP)
                         .addGap(18, 18, 18)
-                        .addComponent(txtNCC2, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtTenSP, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(57, 57, 57)
+                        .addComponent(labelNCC)
+                        .addGap(18, 18, 18)
+                        .addComponent(txtNCC, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnTimDDH2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnTimDDH, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(30, 30, 30))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelTKSP2Layout.createSequentialGroup()
-                        .addComponent(labelHinhAnh2, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(labelHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane3)
                         .addContainerGap())))
@@ -181,41 +242,35 @@ public class SearchProductFrame extends javax.swing.JFrame {
             .addGroup(panelTKSP2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(labelTkSP2)
-                    .addComponent(btnThoat2))
+                    .addComponent(labelTkSP)
+                    .addComponent(btnThoat))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(33, 33, 33)
                 .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(panelTKSP2Layout.createSequentialGroup()
-                        .addComponent(btnTimDDH2)
+                        .addComponent(btnTimDDH)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(panelTKSP2Layout.createSequentialGroup()
                         .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
-                            .addComponent(labelMaSP2)
-                            .addComponent(txtMaSP2)
-                            .addComponent(labelTenSP2)
-                            .addComponent(txtTenSP2)
-                            .addComponent(labelNCC2)
-                            .addComponent(txtNCC2))
+                            .addComponent(labelMaSP)
+                            .addComponent(txtMaSP)
+                            .addComponent(labelTenSP)
+                            .addComponent(txtTenSP)
+                            .addComponent(labelNCC)
+                            .addComponent(txtNCC))
                         .addGap(39, 39, 39)
                         .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(labelNXB2)
-                            .addComponent(txtNXB2)
-                            .addComponent(labelDonGia2)
-                            .addComponent(cbDonGia2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(labelNXB)
+                            .addComponent(txtNXB))
                         .addGap(35, 35, 35)
-                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
-                                .addComponent(labelLoaiSP2)
-                                .addComponent(txtLoaiSP2))
-                            .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(labelTenTG2)
-                                .addComponent(txtTenTG2)))
+                        .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(labelTenTG)
+                            .addComponent(txtTenTG))
                         .addGap(64, 64, 64)))
                 .addGroup(panelTKSP2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 458, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelHinhAnh2, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(labelHinhAnh, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -239,21 +294,22 @@ public class SearchProductFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnTimDDH2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDH2ActionPerformed
+    private void btnTimDDHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTimDDHActionPerformed
         // TODO add your handling code here:
-        //    	submitTimKiem();
-    }//GEN-LAST:event_btnTimDDH2ActionPerformed
+    	submitTimKiem();
+    }//GEN-LAST:event_btnTimDDHActionPerformed
 
-    private void btnThoat2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoat2ActionPerformed
+    private void btnThoatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnThoatActionPerformed
         // TODO add your handling code here:
         dispose();
         new HomeFrame().setVisible(true);
-    }//GEN-LAST:event_btnThoat2ActionPerformed
+    }//GEN-LAST:event_btnThoatActionPerformed
 
-    private void tableSP2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableSP2MouseClicked
+    private void tableSPMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableSPMouseClicked
         // TODO add your handling code here:
-    
-    }//GEN-LAST:event_tableSP2MouseClicked
+    	int index = tableSP.getSelectedRow();
+    	getAnh(listBook.get(index).getId());
+    }//GEN-LAST:event_tableSPMouseClicked
 
     /**
      * @param args the command line arguments
@@ -292,70 +348,22 @@ public class SearchProductFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnThoat;
-    private javax.swing.JButton btnThoat1;
-    private javax.swing.JButton btnThoat2;
     private javax.swing.JButton btnTimDDH;
-    private javax.swing.JButton btnTimDDH1;
-    private javax.swing.JButton btnTimDDH2;
-    private javax.swing.JComboBox<String> cbDonGia;
-    private javax.swing.JComboBox<String> cbDonGia1;
-    private javax.swing.JComboBox<String> cbDonGia2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JSeparator jSeparator4;
-    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator6;
-    private javax.swing.JLabel labelDonGia;
-    private javax.swing.JLabel labelDonGia1;
-    private javax.swing.JLabel labelDonGia2;
     private javax.swing.JLabel labelHinhAnh;
-    private javax.swing.JLabel labelHinhAnh1;
-    private javax.swing.JLabel labelHinhAnh2;
-    private javax.swing.JLabel labelLoaiSP;
-    private javax.swing.JLabel labelLoaiSP1;
-    private javax.swing.JLabel labelLoaiSP2;
     private javax.swing.JLabel labelMaSP;
-    private javax.swing.JLabel labelMaSP1;
-    private javax.swing.JLabel labelMaSP2;
     private javax.swing.JLabel labelNCC;
-    private javax.swing.JLabel labelNCC1;
-    private javax.swing.JLabel labelNCC2;
     private javax.swing.JLabel labelNXB;
-    private javax.swing.JLabel labelNXB1;
-    private javax.swing.JLabel labelNXB2;
     private javax.swing.JLabel labelTenSP;
-    private javax.swing.JLabel labelTenSP1;
-    private javax.swing.JLabel labelTenSP2;
     private javax.swing.JLabel labelTenTG;
-    private javax.swing.JLabel labelTenTG1;
-    private javax.swing.JLabel labelTenTG2;
     private javax.swing.JLabel labelTkSP;
-    private javax.swing.JLabel labelTkSP1;
-    private javax.swing.JLabel labelTkSP2;
-    private javax.swing.JPanel panelTKSP;
-    private javax.swing.JPanel panelTKSP1;
     private javax.swing.JPanel panelTKSP2;
     private javax.swing.JTable tableSP;
-    private javax.swing.JTable tableSP1;
-    private javax.swing.JTable tableSP2;
-    private javax.swing.JTextField txtLoaiSP;
-    private javax.swing.JTextField txtLoaiSP1;
-    private javax.swing.JTextField txtLoaiSP2;
     private javax.swing.JTextField txtMaSP;
-    private javax.swing.JTextField txtMaSP1;
-    private javax.swing.JTextField txtMaSP2;
     private javax.swing.JTextField txtNCC;
-    private javax.swing.JTextField txtNCC1;
-    private javax.swing.JTextField txtNCC2;
     private javax.swing.JTextField txtNXB;
-    private javax.swing.JTextField txtNXB1;
-    private javax.swing.JTextField txtNXB2;
     private javax.swing.JTextField txtTenSP;
-    private javax.swing.JTextField txtTenSP1;
-    private javax.swing.JTextField txtTenSP2;
     private javax.swing.JTextField txtTenTG;
-    private javax.swing.JTextField txtTenTG1;
-    private javax.swing.JTextField txtTenTG2;
     // End of variables declaration//GEN-END:variables
 }
